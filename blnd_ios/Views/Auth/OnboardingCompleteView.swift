@@ -66,6 +66,11 @@ struct OnboardingCompleteView: View {
         .frame(maxWidth: .infinity)
         .background(AppTheme.background)
         .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                BackButton()
+            }
+        }
     }
 }
 

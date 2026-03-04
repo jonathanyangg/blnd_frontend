@@ -3,6 +3,7 @@ import SwiftUI
 struct SignUpView: View {
     @Environment(OnboardingState.self) var onboardingState
     @Binding var path: NavigationPath
+    @State private var emailError: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,13 +27,25 @@ struct SignUpView: View {
                         .textInputAutocapitalization(.never)
                     AppTextField(placeholder: "Password", text: $state.password, isSecure: true)
 
+                    if let emailError {
+                        Text(emailError)
+                            .font(.system(size: 13))
+                            .foregroundStyle(AppTheme.destructive)
+                            .padding(.bottom, 8)
+                    }
+
                     Spacer().frame(height: 20)
 
                     AppButton(
                         label: "Continue",
                         isDisabled: state.name.isEmpty || state.email.isEmpty || state.password.isEmpty
                     ) {
-                        path.append(AuthRoute.pickGenres)
+                        if isValidEmail(state.email) {
+                            emailError = nil
+                            path.append(AuthRoute.pickGenres)
+                        } else {
+                            emailError = "Please enter a valid email address"
+                        }
                     }
 
                     Button {
@@ -62,6 +75,11 @@ struct SignUpView: View {
             }
         }
     }
+
+    private func isValidEmail(_ email: String) -> Bool {
+        let pattern = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
+        return email.range(of: pattern, options: .regularExpression) != nil
+    }
 }
 
 // MARK: - Styled Text Field
@@ -70,17 +88,30 @@ struct AppTextField: View {
     let placeholder: String
     @Binding var text: String
     var isSecure: Bool = false
+    @State private var showPassword = false
 
     var body: some View {
-        Group {
+        HStack(spacing: 0) {
+            Group {
+                if isSecure, !showPassword {
+                    SecureField("", text: $text, prompt: promptText)
+                } else {
+                    TextField("", text: $text, prompt: promptText)
+                }
+            }
+            .font(.system(size: 15))
+            .foregroundStyle(.white)
+
             if isSecure {
-                SecureField("", text: $text, prompt: promptText)
-            } else {
-                TextField("", text: $text, prompt: promptText)
+                Button {
+                    showPassword.toggle()
+                } label: {
+                    Image(systemName: showPassword ? "eye.slash" : "eye")
+                        .foregroundStyle(AppTheme.textMuted)
+                        .font(.system(size: 14))
+                }
             }
         }
-        .font(.system(size: 15))
-        .foregroundStyle(.white)
         .padding(16)
         .background(AppTheme.card)
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
