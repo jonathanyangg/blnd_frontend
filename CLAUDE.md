@@ -14,7 +14,7 @@ SwiftUI iOS app for blnd — movie taste syncing with AI recommendations.
 - **MVVM-ish**: Views own local state, shared state via `@Observable` + `.environment()`
 - **Networking**: `APIClient` singleton → domain-specific static API enums (`AuthAPI`, `MoviesAPI`, etc.)
 - **Auth**: JWT stored in Keychain, injected as Bearer token by `APIClient`
-- **Onboarding nav**: `WelcomeView` owns a `NavigationStack(path:)` with `AuthRoute` enum; child views take `@Binding var path`. Signup API call happens on OnboardingCompleteView ("Let's go"), not on SignUpView.
+- **Onboarding nav**: `WelcomeView` owns a `NavigationStack(path:)` with `AuthRoute` enum; child views take `@Binding var path`. Signup API call happens on SignUpView (step 3), credentials collected last so duplicate email errors show immediately.
 - **Onboarding state**: `OnboardingState` caches credentials + genres + ratings so back-navigation preserves selections. Genre/rating endpoints not yet wired (backend needs profile update endpoint).
 - **Models**: Codable structs matching backend Pydantic schemas (snake_case → camelCase via CodingKeys)
 
@@ -48,7 +48,7 @@ blnd_frontend/
 │   ├── Auth/
 │   │   ├── WelcomeView.swift
 │   │   ├── OnboardingView.swift
-│   │   ├── SignUpView.swift    caches credentials in OnboardingState, no API call
+│   │   ├── SignUpView.swift    step 3: collects credentials, calls signup API, has email validation
 │   │   ├── LoginView.swift     ✅ wired to authState.login()
 │   │   ├── PickGenresView.swift
 │   │   ├── RateMoviesView.swift
@@ -106,7 +106,7 @@ blnd_frontend/
 
 ## Screens (16 total)
 
-- **Onboarding (4)**: Create Account → Pick Genres → Rate Movies (swipe cards) → You're In
+- **Onboarding (4)**: Pick Genres → Rate Movies (swipe cards) → Create Account (signup API call) → You're In
 - **Home (3)**: Home Feed, Search Results, Movie Detail
 - **Friends (3)**: Friends List, Friend Profile, Add Friend
 - **Groups (3)**: Groups List, Group Detail, Create Group
@@ -119,15 +119,19 @@ blnd_frontend/
 2. ~~Build foundation: `APIConfig`, `KeychainManager`, `APIClient`, `AuthModels`~~
 3. ~~Build auth flow: `AuthState`, onboarding views, `ContentView` auth gate~~
 4. ~~Build tab structure: `MainTabView` (Home, Friends, Groups, Profile)~~
+5. ~~Fix onboarding nav: `NavigationPath`-based routing, back buttons, Sign in/Create one links pop-and-push to avoid infinite loop~~
+6. ~~Onboarding state caching: `OnboardingState` preserves genres/ratings across back-navigation~~
+7. ~~Reorder onboarding: Pick Genres → Rate Movies → Create Account (signup API) → You're In~~
+8. ~~Email validation + password eye toggle on AppTextField~~
 
 ## Next Steps
 
-5. Wire onboarding genre/rating submission (needs backend profile update endpoint + POST /tracking per movie)
-6. Build movie features: `MovieModels`, `MoviesAPI`, `HomeView`, `MovieDetailView`
-7. Build social: `FriendsListView`, `GroupsListView`, `GroupDetailView`
-8. Build profile: `ProfileView` with user info + logout
-9. Build recommendations: wire `RecommendationsAPI` into Home + Groups
-10. Polish: empty states, error handling, search debounce
+9. Wire onboarding genre/rating submission (needs backend profile update endpoint + POST /tracking per movie)
+10. Build movie features: `MovieModels`, `MoviesAPI`, `HomeView`, `MovieDetailView`
+11. Build social: `FriendsListView`, `GroupsListView`, `GroupDetailView`
+12. Build profile: `ProfileView` with user info + logout
+13. Build recommendations: wire `RecommendationsAPI` into Home + Groups
+14. Polish: empty states, error handling, search debounce
 
 ## Linting
 
