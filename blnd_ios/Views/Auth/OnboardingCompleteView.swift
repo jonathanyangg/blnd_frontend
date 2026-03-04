@@ -2,6 +2,7 @@ import SwiftUI
 
 struct OnboardingCompleteView: View {
     @Environment(AuthState.self) var authState
+    @Environment(OnboardingState.self) var onboardingState
 
     var body: some View {
         VStack(spacing: 0) {
@@ -36,8 +37,28 @@ struct OnboardingCompleteView: View {
 
             Spacer()
 
-            AppButton(label: "Let's go") {
-                authState.isAuthenticated = true
+            if let error = authState.error {
+                Text(error)
+                    .font(.system(size: 13))
+                    .foregroundStyle(AppTheme.destructive)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 8)
+            }
+
+            AppButton(label: "Let's go", isLoading: authState.isLoading) {
+                Task {
+                    let state = onboardingState
+                    await authState.signup(
+                        email: state.email,
+                        password: state.password,
+                        username: state.email.components(separatedBy: "@").first ?? state.email,
+                        displayName: state.name
+                    )
+                    if authState.error == nil {
+                        authState.isAuthenticated = true
+                        onboardingState.reset()
+                    }
+                }
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 60)

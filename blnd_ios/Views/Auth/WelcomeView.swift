@@ -1,13 +1,20 @@
 import SwiftUI
 
+/// Routes used by the onboarding NavigationStack.
+enum AuthRoute: Hashable {
+    case signUp
+    case login
+    case pickGenres
+    case rateMovies
+    case onboardingComplete
+}
+
 /// Landing screen that routes to Sign Up or Login.
-/// Not explicitly in the JSX mockup, but serves as the entry point before onboarding.
 struct WelcomeView: View {
-    @State private var showSignUp = false
-    @State private var showLogin = false
+    @State private var path = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             VStack(spacing: 0) {
                 Spacer()
 
@@ -25,11 +32,11 @@ struct WelcomeView: View {
 
                 VStack(spacing: 8) {
                     AppButton(label: "Create Account") {
-                        showSignUp = true
+                        path.append(AuthRoute.signUp)
                     }
 
                     AppButton(label: "Sign In", style: .ghost) {
-                        showLogin = true
+                        path.append(AuthRoute.login)
                     }
                 }
                 .padding(.bottom, 48)
@@ -37,11 +44,19 @@ struct WelcomeView: View {
             .padding(.horizontal, 24)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppTheme.background)
-            .navigationDestination(isPresented: $showSignUp) {
-                SignUpView()
-            }
-            .navigationDestination(isPresented: $showLogin) {
-                LoginView()
+            .navigationDestination(for: AuthRoute.self) { route in
+                switch route {
+                case .signUp:
+                    SignUpView(path: $path)
+                case .login:
+                    LoginView(path: $path)
+                case .pickGenres:
+                    PickGenresView(path: $path)
+                case .rateMovies:
+                    RateMoviesView(path: $path)
+                case .onboardingComplete:
+                    OnboardingCompleteView()
+                }
             }
         }
     }
@@ -49,4 +64,6 @@ struct WelcomeView: View {
 
 #Preview {
     WelcomeView()
+        .environment(AuthState())
+        .environment(OnboardingState())
 }

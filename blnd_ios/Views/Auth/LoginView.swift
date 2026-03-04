@@ -2,6 +2,8 @@ import SwiftUI
 
 struct LoginView: View {
     @Environment(AuthState.self) var authState
+    @Environment(OnboardingState.self) var onboardingState
+    @Binding var path: NavigationPath
     @State private var email = ""
     @State private var password = ""
 
@@ -32,19 +34,26 @@ struct LoginView: View {
 
                     AppButton(label: "Sign In", isLoading: authState.isLoading) {
                         Task {
+                            onboardingState.reset()
                             await authState.login(email: email, password: password)
                         }
                     }
 
-                    HStack(spacing: 4) {
-                        Text("Don't have an account?")
-                            .foregroundStyle(AppTheme.textMuted)
-                        Text("Create one")
-                            .foregroundStyle(.white)
+                    Button {
+                        // Pop to root, then push sign up
+                        path.removeLast(path.count)
+                        path.append(AuthRoute.signUp)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Don't have an account?")
+                                .foregroundStyle(AppTheme.textMuted)
+                            Text("Create one")
+                                .foregroundStyle(.white)
+                        }
+                        .font(.system(size: 14))
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 20)
                     }
-                    .font(.system(size: 14))
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 20)
                 }
                 .padding(.horizontal, 24)
             }
@@ -77,7 +86,8 @@ struct BackButton: View {
 
 #Preview {
     NavigationStack {
-        LoginView()
+        LoginView(path: .constant(NavigationPath()))
             .environment(AuthState())
+            .environment(OnboardingState())
     }
 }

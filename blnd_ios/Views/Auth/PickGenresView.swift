@@ -6,11 +6,11 @@ struct PickGenresView: View {
         "Drama", "Animation", "Documentary", "Mystery", "Fantasy", "Crime",
     ]
 
-    @State private var selectedGenres: Set<String> = []
-    @State private var navigateToRate = false
+    @Environment(OnboardingState.self) var onboardingState
+    @Binding var path: NavigationPath
 
     private var canContinue: Bool {
-        selectedGenres.count >= 3
+        onboardingState.selectedGenres.count >= 3
     }
 
     var body: some View {
@@ -35,12 +35,12 @@ struct PickGenresView: View {
                         ForEach(allGenres, id: \.self) { genre in
                             GenrePill(
                                 label: genre,
-                                isActive: selectedGenres.contains(genre)
+                                isActive: onboardingState.selectedGenres.contains(genre)
                             ) {
-                                if selectedGenres.contains(genre) {
-                                    selectedGenres.remove(genre)
+                                if onboardingState.selectedGenres.contains(genre) {
+                                    onboardingState.selectedGenres.remove(genre)
                                 } else {
-                                    selectedGenres.insert(genre)
+                                    onboardingState.selectedGenres.insert(genre)
                                 }
                             }
                         }
@@ -49,7 +49,7 @@ struct PickGenresView: View {
                     Spacer().frame(height: 24)
 
                     AppButton(label: "Continue", isDisabled: !canContinue) {
-                        navigateToRate = true
+                        path.append(AuthRoute.rateMovies)
                     }
                 }
                 .padding(.horizontal, 24)
@@ -61,9 +61,6 @@ struct PickGenresView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 BackButton()
             }
-        }
-        .navigationDestination(isPresented: $navigateToRate) {
-            RateMoviesView()
         }
     }
 }
@@ -112,6 +109,7 @@ struct FlowLayout: Layout {
 
 #Preview {
     NavigationStack {
-        PickGenresView()
+        PickGenresView(path: .constant(NavigationPath()))
+            .environment(OnboardingState())
     }
 }

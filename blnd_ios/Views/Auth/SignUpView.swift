@@ -1,11 +1,8 @@
 import SwiftUI
 
 struct SignUpView: View {
-    @Environment(AuthState.self) var authState
-    @State private var name = ""
-    @State private var email = ""
-    @State private var password = ""
-    @State private var navigateToGenres = false
+    @Environment(OnboardingState.self) var onboardingState
+    @Binding var path: NavigationPath
 
     var body: some View {
         VStack(spacing: 0) {
@@ -20,58 +17,49 @@ struct SignUpView: View {
                         .padding(.top, 40)
                         .padding(.bottom, 32)
 
-                    AppTextField(placeholder: "Name", text: $name)
-                    AppTextField(placeholder: "Email", text: $email)
+                    @Bindable var state = onboardingState
+
+                    AppTextField(placeholder: "Name", text: $state.name)
+                    AppTextField(placeholder: "Email", text: $state.email)
                         .textContentType(.emailAddress)
                         .keyboardType(.emailAddress)
                         .textInputAutocapitalization(.never)
-                    AppTextField(placeholder: "Password", text: $password, isSecure: true)
-
-                    if let error = authState.error {
-                        Text(error)
-                            .font(.system(size: 13))
-                            .foregroundStyle(AppTheme.destructive)
-                            .padding(.bottom, 8)
-                    }
+                    AppTextField(placeholder: "Password", text: $state.password, isSecure: true)
 
                     Spacer().frame(height: 20)
 
                     AppButton(
                         label: "Continue",
-                        isLoading: authState.isLoading,
-                        isDisabled: name.isEmpty || email.isEmpty || password.isEmpty
+                        isDisabled: state.name.isEmpty || state.email.isEmpty || state.password.isEmpty
                     ) {
-                        Task {
-                            await authState.signup(
-                                email: email,
-                                password: password,
-                                username: email.components(separatedBy: "@").first ?? email,
-                                displayName: name
-                            )
-                            if authState.error == nil {
-                                navigateToGenres = true
-                            }
-                        }
+                        path.append(AuthRoute.pickGenres)
                     }
 
-                    HStack(spacing: 4) {
-                        Text("Already have an account?")
-                            .foregroundStyle(AppTheme.textMuted)
-                        // Would pop back to WelcomeView and navigate to Login
-                        Text("Sign in")
-                            .foregroundStyle(.white)
+                    Button {
+                        // Pop to root, then push login
+                        path.removeLast(path.count)
+                        path.append(AuthRoute.login)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Already have an account?")
+                                .foregroundStyle(AppTheme.textMuted)
+                            Text("Sign in")
+                                .foregroundStyle(.white)
+                        }
+                        .font(.system(size: 14))
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 20)
                     }
-                    .font(.system(size: 14))
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 20)
                 }
                 .padding(.horizontal, 24)
             }
         }
         .background(AppTheme.background)
         .navigationBarBackButtonHidden()
-        .navigationDestination(isPresented: $navigateToGenres) {
-            PickGenresView()
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                BackButton()
+            }
         }
     }
 }
@@ -107,7 +95,8 @@ struct AppTextField: View {
 
 #Preview {
     NavigationStack {
-        SignUpView()
+        SignUpView(path: .constant(NavigationPath()))
             .environment(AuthState())
+            .environment(OnboardingState())
     }
 }

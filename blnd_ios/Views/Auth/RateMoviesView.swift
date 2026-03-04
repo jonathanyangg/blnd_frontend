@@ -15,9 +15,10 @@ struct RateMoviesView: View {
         .init(title: "Mad Max: Fury Road", year: "2015"),
     ]
 
+    @Environment(OnboardingState.self) var onboardingState
+    @Binding var path: NavigationPath
     @State private var currentIndex = 0
     @State private var offset: CGSize = .zero
-    @State private var navigateToComplete = false
 
     private var currentMovie: MovieToRate {
         movies[min(currentIndex, movies.count - 1)]
@@ -131,12 +132,11 @@ struct RateMoviesView: View {
                 BackButton()
             }
         }
-        .navigationDestination(isPresented: $navigateToComplete) {
-            OnboardingCompleteView()
-        }
     }
 
     private func swipe(liked: Bool) {
+        let movie = currentMovie
+        onboardingState.movieRatings[movie.id] = liked
         withAnimation(.easeOut(duration: 0.3)) {
             offset = CGSize(width: liked ? 300 : -300, height: 0)
         }
@@ -154,7 +154,7 @@ struct RateMoviesView: View {
         if currentIndex < movies.count - 1 {
             currentIndex += 1
         } else {
-            navigateToComplete = true
+            path.append(AuthRoute.onboardingComplete)
         }
     }
 }
@@ -202,6 +202,7 @@ private struct SwipeCard: View {
 
 #Preview {
     NavigationStack {
-        RateMoviesView()
+        RateMoviesView(path: .constant(NavigationPath()))
+            .environment(OnboardingState())
     }
 }

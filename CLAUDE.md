@@ -14,6 +14,8 @@ SwiftUI iOS app for blnd — movie taste syncing with AI recommendations.
 - **MVVM-ish**: Views own local state, shared state via `@Observable` + `.environment()`
 - **Networking**: `APIClient` singleton → domain-specific static API enums (`AuthAPI`, `MoviesAPI`, etc.)
 - **Auth**: JWT stored in Keychain, injected as Bearer token by `APIClient`
+- **Onboarding nav**: `WelcomeView` owns a `NavigationStack(path:)` with `AuthRoute` enum; child views take `@Binding var path`. Signup API call happens on OnboardingCompleteView ("Let's go"), not on SignUpView.
+- **Onboarding state**: `OnboardingState` caches credentials + genres + ratings so back-navigation preserves selections. Genre/rating endpoints not yet wired (backend needs profile update endpoint).
 - **Models**: Codable structs matching backend Pydantic schemas (snake_case → camelCase via CodingKeys)
 
 ## Project Structure
@@ -21,7 +23,7 @@ SwiftUI iOS app for blnd — movie taste syncing with AI recommendations.
 ```
 blnd_frontend/
 ├── App/
-│   └── blndApp.swift          (BlndApp entry point, injects AuthState into environment)
+│   └── blndApp.swift          (BlndApp entry point, injects AuthState + OnboardingState into environment)
 ├── Config/
 │   ├── APIConfig.swift         ✅ base URL constant
 │   └── KeychainManager.swift   ✅ save/read/delete tokens via Security framework
@@ -36,7 +38,8 @@ blnd_frontend/
 │   ├── MoviesAPI.swift         (planned)
 │   └── GroupsAPI.swift         (planned)
 ├── State/
-│   └── AuthState.swift         ✅ @Observable, signup/login/logout/fetchCurrentUser
+│   ├── AuthState.swift         ✅ @Observable, signup/login/logout/fetchCurrentUser
+│   └── OnboardingState.swift   caches name/email/password/genres/ratings during onboarding
 ├── Theme/
 │   └── AppTheme.swift
 ├── Views/
@@ -45,7 +48,7 @@ blnd_frontend/
 │   ├── Auth/
 │   │   ├── WelcomeView.swift
 │   │   ├── OnboardingView.swift
-│   │   ├── SignUpView.swift    ✅ wired to authState.signup()
+│   │   ├── SignUpView.swift    caches credentials in OnboardingState, no API call
 │   │   ├── LoginView.swift     ✅ wired to authState.login()
 │   │   ├── PickGenresView.swift
 │   │   ├── RateMoviesView.swift
@@ -119,11 +122,12 @@ blnd_frontend/
 
 ## Next Steps
 
-5. Build movie features: `MovieModels`, `MoviesAPI`, `HomeView`, `MovieDetailView`
-6. Build social: `FriendsListView`, `GroupsListView`, `GroupDetailView`
-7. Build profile: `ProfileView` with user info + logout
-8. Build recommendations: wire `RecommendationsAPI` into Home + Groups
-9. Polish: empty states, error handling, search debounce
+5. Wire onboarding genre/rating submission (needs backend profile update endpoint + POST /tracking per movie)
+6. Build movie features: `MovieModels`, `MoviesAPI`, `HomeView`, `MovieDetailView`
+7. Build social: `FriendsListView`, `GroupsListView`, `GroupDetailView`
+8. Build profile: `ProfileView` with user info + logout
+9. Build recommendations: wire `RecommendationsAPI` into Home + Groups
+10. Polish: empty states, error handling, search debounce
 
 ## Linting
 
