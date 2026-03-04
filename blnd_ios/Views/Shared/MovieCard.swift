@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct MovieCard: View {
-    var title: String? = nil
-    var year: String? = nil
+    var title: String?
+    var year: String?
     var width: CGFloat = 90
     var height: CGFloat = 130
     var glow: Bool = false

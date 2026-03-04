@@ -3,7 +3,7 @@ import SwiftUI
 struct SearchBar: View {
     @Binding var text: String
     var placeholder: String = "Search movies..."
-    var onClear: (() -> Void)? = nil
+    var onClear: (() -> Void)?
 
     var body: some View {
         HStack(spacing: 8) {
@@ -40,7 +40,7 @@ struct SearchBar: View {
     }
 }
 
-// Non-interactive version for tappable search bar
+/// Non-interactive version for tappable search bar
 struct SearchBarButton: View {
     var placeholder: String = "Search movies..."
     var action: () -> Void = {}

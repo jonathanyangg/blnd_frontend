@@ -4,9 +4,9 @@ struct GroupDetailView: View {
     let name: String
     let memberCount: Int
 
-    private let watchlist: [(title: String, year: String, addedBy: String)] = [
-        ("Parasite", "2019", "added by Alex"),
-        ("Tenet", "2020", "added by Maria"),
+    private let watchlist: [WatchlistItem] = [
+        .init(title: "Parasite", year: "2019", addedBy: "added by Alex"),
+        .init(title: "Tenet", year: "2020", addedBy: "added by Maria"),
     ]
 
     var body: some View {
@@ -22,8 +22,8 @@ struct GroupDetailView: View {
                 // Members row
                 HStack(spacing: 8) {
                     HStack(spacing: 0) {
-                        ForEach(0 ..< min(memberCount, 3), id: \.self) { i in
-                            AvatarView(size: 28, overlap: i > 0)
+                        ForEach(0 ..< min(memberCount, 3), id: \.self) { index in
+                            AvatarView(size: 28, overlap: index > 0)
                         }
 
                         if memberCount > 3 {
@@ -61,8 +61,8 @@ struct GroupDetailView: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        ForEach(0 ..< 4, id: \.self) { i in
-                            MovieCard(width: 90, height: 130, gradientAngle: 135 + i * 20)
+                        ForEach(0 ..< 4, id: \.self) { index in
+                            MovieCard(width: 90, height: 130, gradientAngle: 135 + index * 20)
                         }
                     }
                 }
@@ -111,6 +111,12 @@ struct GroupDetailView: View {
             }
         }
     }
+}
+
+private struct WatchlistItem {
+    let title: String
+    let year: String
+    let addedBy: String
 }
 
 #Preview {

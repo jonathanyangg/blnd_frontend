@@ -1,12 +1,18 @@
 import SwiftUI
 
+private struct GroupData {
+    let name: String
+    let members: String
+    let count: Int
+}
+
 struct GroupsListView: View {
     @State private var showCreateGroup = false
 
-    private let groups: [(name: String, members: String, count: Int)] = [
-        ("Movie Night Crew", "5 members", 3),
-        ("Sci-Fi Club", "3 members", 3),
-        ("Weekend Watch", "8 members", 3),
+    private let groups: [GroupData] = [
+        .init(name: "Movie Night Crew", members: "5 members", count: 3),
+        .init(name: "Sci-Fi Club", members: "3 members", count: 3),
+        .init(name: "Weekend Watch", members: "8 members", count: 3),
     ]
 
     var body: some View {
@@ -79,8 +85,8 @@ private struct GroupCardRow: View {
             Spacer()
 
             HStack(spacing: 0) {
-                ForEach(0 ..< avatarCount, id: \.self) { i in
-                    AvatarView(size: 28, overlap: i > 0)
+                ForEach(0 ..< avatarCount, id: \.self) { index in
+                    AvatarView(size: 28, overlap: index > 0)
                 }
             }
         }

@@ -12,37 +12,37 @@
 			containerPortal = 84CAD8BF2F56A2E7001B73F1 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 84CAD8C62F56A2E7001B73F1;
-			remoteInfo = blnd_frontend;
+			remoteInfo = blnd_ios;
 		};
 		84CAD8DF2F56A2E9001B73F1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 84CAD8BF2F56A2E7001B73F1 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 84CAD8C62F56A2E7001B73F1;
-			remoteInfo = blnd_frontend;
+			remoteInfo = blnd_ios;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		84CAD8C72F56A2E7001B73F1 /* blnd_frontend.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = blnd_frontend.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		84CAD8D42F56A2E8001B73F1 /* blnd_frontendTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = blnd_frontendTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		84CAD8DE2F56A2E9001B73F1 /* blnd_frontendUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = blnd_frontendUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		84CAD8C72F56A2E7001B73F1 /* blnd_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = blnd_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		84CAD8D42F56A2E8001B73F1 /* blnd_iosTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = blnd_iosTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		84CAD8DE2F56A2E9001B73F1 /* blnd_iosUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = blnd_iosUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		84CAD8C92F56A2E7001B73F1 /* blnd_frontend */ = {
+		84CAD8C92F56A2E7001B73F1 /* blnd_ios */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = blnd_frontend;
+			path = blnd_ios;
 			sourceTree = "<group>";
 		};
-		84CAD8D72F56A2E8001B73F1 /* blnd_frontendTests */ = {
+		84CAD8D72F56A2E8001B73F1 /* blnd_iosTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = blnd_frontendTests;
+			path = blnd_iosTests;
 			sourceTree = "<group>";
 		};
-		84CAD8E12F56A2E9001B73F1 /* blnd_frontendUITests */ = {
+		84CAD8E12F56A2E9001B73F1 /* blnd_iosUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = blnd_frontendUITests;
+			path = blnd_iosUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,9 +75,9 @@
 		84CAD8BE2F56A2E7001B73F1 = {
 			isa = PBXGroup;
 			children = (
-				84CAD8C92F56A2E7001B73F1 /* blnd_frontend */,
-				84CAD8D72F56A2E8001B73F1 /* blnd_frontendTests */,
-				84CAD8E12F56A2E9001B73F1 /* blnd_frontendUITests */,
+				84CAD8C92F56A2E7001B73F1 /* blnd_ios */,
+				84CAD8D72F56A2E8001B73F1 /* blnd_iosTests */,
+				84CAD8E12F56A2E9001B73F1 /* blnd_iosUITests */,
 				84CAD8C82F56A2E7001B73F1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -85,9 +85,9 @@
 		84CAD8C82F56A2E7001B73F1 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				84CAD8C72F56A2E7001B73F1 /* blnd_frontend.app */,
-				84CAD8D42F56A2E8001B73F1 /* blnd_frontendTests.xctest */,
-				84CAD8DE2F56A2E9001B73F1 /* blnd_frontendUITests.xctest */,
+				84CAD8C72F56A2E7001B73F1 /* blnd_ios.app */,
+				84CAD8D42F56A2E8001B73F1 /* blnd_iosTests.xctest */,
+				84CAD8DE2F56A2E9001B73F1 /* blnd_iosUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,9 +95,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		84CAD8C62F56A2E7001B73F1 /* blnd_frontend */ = {
+		84CAD8C62F56A2E7001B73F1 /* blnd_ios */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 84CAD8E82F56A2E9001B73F1 /* Build configuration list for PBXNativeTarget "blnd_frontend" */;
+			buildConfigurationList = 84CAD8E82F56A2E9001B73F1 /* Build configuration list for PBXNativeTarget "blnd_ios" */;
 			buildPhases = (
 				84CAD8C32F56A2E7001B73F1 /* Sources */,
 				84CAD8C42F56A2E7001B73F1 /* Frameworks */,
@@ -108,18 +108,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				84CAD8C92F56A2E7001B73F1 /* blnd_frontend */,
+				84CAD8C92F56A2E7001B73F1 /* blnd_ios */,
 			);
-			name = blnd_frontend;
+			name = blnd_ios;
 			packageProductDependencies = (
 			);
-			productName = blnd_frontend;
-			productReference = 84CAD8C72F56A2E7001B73F1 /* blnd_frontend.app */;
+			productName = blnd_ios;
+			productReference = 84CAD8C72F56A2E7001B73F1 /* blnd_ios.app */;
 			productType = "com.apple.product-type.application";
 		};
-		84CAD8D32F56A2E8001B73F1 /* blnd_frontendTests */ = {
+		84CAD8D32F56A2E8001B73F1 /* blnd_iosTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 84CAD8EB2F56A2E9001B73F1 /* Build configuration list for PBXNativeTarget "blnd_frontendTests" */;
+			buildConfigurationList = 84CAD8EB2F56A2E9001B73F1 /* Build configuration list for PBXNativeTarget "blnd_iosTests" */;
 			buildPhases = (
 				84CAD8D02F56A2E8001B73F1 /* Sources */,
 				84CAD8D12F56A2E8001B73F1 /* Frameworks */,
@@ -131,18 +131,18 @@
 				84CAD8D62F56A2E8001B73F1 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				84CAD8D72F56A2E8001B73F1 /* blnd_frontendTests */,
+				84CAD8D72F56A2E8001B73F1 /* blnd_iosTests */,
 			);
-			name = blnd_frontendTests;
+			name = blnd_iosTests;
 			packageProductDependencies = (
 			);
-			productName = blnd_frontendTests;
-			productReference = 84CAD8D42F56A2E8001B73F1 /* blnd_frontendTests.xctest */;
+			productName = blnd_iosTests;
+			productReference = 84CAD8D42F56A2E8001B73F1 /* blnd_iosTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		84CAD8DD2F56A2E9001B73F1 /* blnd_frontendUITests */ = {
+		84CAD8DD2F56A2E9001B73F1 /* blnd_iosUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 84CAD8EE2F56A2E9001B73F1 /* Build configuration list for PBXNativeTarget "blnd_frontendUITests" */;
+			buildConfigurationList = 84CAD8EE2F56A2E9001B73F1 /* Build configuration list for PBXNativeTarget "blnd_iosUITests" */;
 			buildPhases = (
 				84CAD8DA2F56A2E9001B73F1 /* Sources */,
 				84CAD8DB2F56A2E9001B73F1 /* Frameworks */,
@@ -154,13 +154,13 @@
 				84CAD8E02F56A2E9001B73F1 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				84CAD8E12F56A2E9001B73F1 /* blnd_frontendUITests */,
+				84CAD8E12F56A2E9001B73F1 /* blnd_iosUITests */,
 			);
-			name = blnd_frontendUITests;
+			name = blnd_iosUITests;
 			packageProductDependencies = (
 			);
-			productName = blnd_frontendUITests;
-			productReference = 84CAD8DE2F56A2E9001B73F1 /* blnd_frontendUITests.xctest */;
+			productName = blnd_iosUITests;
+			productReference = 84CAD8DE2F56A2E9001B73F1 /* blnd_iosUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -186,7 +186,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 84CAD8C22F56A2E7001B73F1 /* Build configuration list for PBXProject "blnd_frontend" */;
+			buildConfigurationList = 84CAD8C22F56A2E7001B73F1 /* Build configuration list for PBXProject "blnd_ios" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -200,9 +200,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				84CAD8C62F56A2E7001B73F1 /* blnd_frontend */,
-				84CAD8D32F56A2E8001B73F1 /* blnd_frontendTests */,
-				84CAD8DD2F56A2E9001B73F1 /* blnd_frontendUITests */,
+				84CAD8C62F56A2E7001B73F1 /* blnd_ios */,
+				84CAD8D32F56A2E8001B73F1 /* blnd_iosTests */,
+				84CAD8DD2F56A2E9001B73F1 /* blnd_iosUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -258,12 +258,12 @@
 /* Begin PBXTargetDependency section */
 		84CAD8D62F56A2E8001B73F1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 84CAD8C62F56A2E7001B73F1 /* blnd_frontend */;
+			target = 84CAD8C62F56A2E7001B73F1 /* blnd_ios */;
 			targetProxy = 84CAD8D52F56A2E8001B73F1 /* PBXContainerItemProxy */;
 		};
 		84CAD8E02F56A2E9001B73F1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 84CAD8C62F56A2E7001B73F1 /* blnd_frontend */;
+			target = 84CAD8C62F56A2E7001B73F1 /* blnd_ios */;
 			targetProxy = 84CAD8DF2F56A2E9001B73F1 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -408,7 +408,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.jonathan.blnd-frontend";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jonathan.blnd-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -440,7 +440,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.jonathan.blnd-frontend";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jonathan.blnd-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -461,7 +461,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.jonathan.blnd-frontendTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jonathan.blnd-iosTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -469,7 +469,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/blnd_frontend.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/blnd_frontend";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/blnd_ios.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/blnd_ios";
 			};
 			name = Debug;
 		};
@@ -482,7 +482,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.jonathan.blnd-frontendTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jonathan.blnd-iosTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -490,7 +490,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/blnd_frontend.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/blnd_frontend";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/blnd_ios.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/blnd_ios";
 			};
 			name = Release;
 		};
@@ -501,7 +501,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.jonathan.blnd-frontendUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jonathan.blnd-iosUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -509,7 +509,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = blnd_frontend;
+				TEST_TARGET_NAME = blnd_ios;
 			};
 			name = Debug;
 		};
@@ -520,7 +520,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.jonathan.blnd-frontendUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.jonathan.blnd-iosUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -528,14 +528,14 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = blnd_frontend;
+				TEST_TARGET_NAME = blnd_ios;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		84CAD8C22F56A2E7001B73F1 /* Build configuration list for PBXProject "blnd_frontend" */ = {
+		84CAD8C22F56A2E7001B73F1 /* Build configuration list for PBXProject "blnd_ios" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				84CAD8E62F56A2E9001B73F1 /* Debug */,
@@ -544,7 +544,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		84CAD8E82F56A2E9001B73F1 /* Build configuration list for PBXNativeTarget "blnd_frontend" */ = {
+		84CAD8E82F56A2E9001B73F1 /* Build configuration list for PBXNativeTarget "blnd_ios" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				84CAD8E92F56A2E9001B73F1 /* Debug */,
@@ -553,7 +553,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		84CAD8EB2F56A2E9001B73F1 /* Build configuration list for PBXNativeTarget "blnd_frontendTests" */ = {
+		84CAD8EB2F56A2E9001B73F1 /* Build configuration list for PBXNativeTarget "blnd_iosTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				84CAD8EC2F56A2E9001B73F1 /* Debug */,
@@ -562,7 +562,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		84CAD8EE2F56A2E9001B73F1 /* Build configuration list for PBXNativeTarget "blnd_frontendUITests" */ = {
+		84CAD8EE2F56A2E9001B73F1 /* Build configuration list for PBXNativeTarget "blnd_iosUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				84CAD8EF2F56A2E9001B73F1 /* Debug */,

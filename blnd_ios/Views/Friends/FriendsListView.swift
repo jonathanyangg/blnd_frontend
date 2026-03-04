@@ -1,13 +1,19 @@
 import SwiftUI
 
+private struct FriendData {
+    let name: String
+    let username: String
+    let matchPercent: Int
+}
+
 struct FriendsListView: View {
     @State private var showAddFriend = false
 
-    private let friends: [(name: String, username: String, matchPercent: Int)] = [
-        ("Alex", "@alex_m", 87),
-        ("Maria", "@maria_m", 88),
-        ("Jordan", "@jordan_m", 89),
-        ("Sam", "@sam_m", 90),
+    private let friends: [FriendData] = [
+        .init(name: "Alex", username: "@alex_m", matchPercent: 87),
+        .init(name: "Maria", username: "@maria_m", matchPercent: 88),
+        .init(name: "Jordan", username: "@jordan_m", matchPercent: 89),
+        .init(name: "Sam", username: "@sam_m", matchPercent: 90),
     ]
 
     var body: some View {

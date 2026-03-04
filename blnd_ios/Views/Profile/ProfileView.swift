@@ -80,10 +80,10 @@ struct ProfileView: View {
                             .foregroundStyle(.white)
 
                         LazyVGrid(columns: ratingColumns, spacing: 8) {
-                            ForEach(0 ..< 6, id: \.self) { i in
+                            ForEach(0 ..< 6, id: \.self) { index in
                                 ZStack(alignment: .bottomTrailing) {
                                     RoundedRectangle(cornerRadius: 8)
-                                        .fill(AppTheme.posterGradient(angle: 120 + i * 20))
+                                        .fill(AppTheme.posterGradient(angle: 120 + index * 20))
                                         .frame(height: 100)
 
                                     Image(systemName: "star.fill")

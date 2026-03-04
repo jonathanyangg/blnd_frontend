@@ -111,9 +111,9 @@ struct RateMoviesView: View {
 
                 // Progress dots
                 HStack(spacing: 8) {
-                    ForEach(0 ..< movies.count, id: \.self) { i in
+                    ForEach(0 ..< movies.count, id: \.self) { index in
                         Circle()
-                            .fill(i <= currentIndex ? .white : AppTheme.border)
+                            .fill(index <= currentIndex ? .white : AppTheme.border)
                             .frame(width: 8, height: 8)
                     }
                 }

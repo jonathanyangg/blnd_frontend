@@ -68,8 +68,8 @@ struct FriendProfileView: View {
 
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 10) {
-                            ForEach(0 ..< 3, id: \.self) { i in
-                                MovieCard(width: 90, height: 130, gradientAngle: 135 + i * 30)
+                            ForEach(0 ..< 3, id: \.self) { index in
+                                MovieCard(width: 90, height: 130, gradientAngle: 135 + index * 30)
                             }
                         }
                     }
@@ -84,9 +84,9 @@ struct FriendProfileView: View {
                         .foregroundStyle(.white)
 
                     LazyVGrid(columns: columns, spacing: 8) {
-                        ForEach(0 ..< 4, id: \.self) { i in
+                        ForEach(0 ..< 4, id: \.self) { index in
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(AppTheme.posterGradient(angle: 120 + i * 30))
+                                .fill(AppTheme.posterGradient(angle: 120 + index * 30))
                                 .frame(height: 100)
                         }
                     }

@@ -9,7 +9,9 @@ struct MovieDetailView: View {
 
     private let genres = ["Action", "Sci-Fi", "Thriller"]
     private let cast = ["DiCaprio", "Page", "Hardy", "Cotillard"]
-    private let description = "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O."
+    private let description =
+        "A thief who steals corporate secrets through dream-sharing technology " +
+        "is given the inverse task of planting an idea into the mind of a C.E.O."
     private let runtime = "2h 28m"
 
     var body: some View {

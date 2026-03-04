@@ -4,7 +4,7 @@ struct GenrePill: View {
     let label: String
     var isActive: Bool = false
     var isSmall: Bool = false
-    var action: (() -> Void)? = nil
+    var action: (() -> Void)?
 
     var body: some View {
         if let action {

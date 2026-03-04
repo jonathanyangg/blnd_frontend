@@ -31,13 +31,13 @@ struct RateMovieSheet: View {
 
             // Star rating
             HStack(spacing: 12) {
-                ForEach(0 ..< 5, id: \.self) { i in
+                ForEach(0 ..< 5, id: \.self) { index in
                     Button {
-                        rating = i + 1
+                        rating = index + 1
                     } label: {
                         Image(systemName: "star.fill")
                             .font(.system(size: 28))
-                            .foregroundStyle(i < rating ? .white : AppTheme.border)
+                            .foregroundStyle(index < rating ? .white : AppTheme.border)
                     }
                 }
             }

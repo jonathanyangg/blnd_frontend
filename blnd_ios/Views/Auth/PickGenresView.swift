@@ -9,7 +9,9 @@ struct PickGenresView: View {
     @State private var selectedGenres: Set<String> = []
     @State private var navigateToRate = false
 
-    private var canContinue: Bool { selectedGenres.count >= 3 }
+    private var canContinue: Bool {
+        selectedGenres.count >= 3
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -88,23 +90,23 @@ struct FlowLayout: Layout {
 
     private func layout(in width: CGFloat, subviews: Subviews) -> (positions: [CGPoint], size: CGSize) {
         var positions: [CGPoint] = []
-        var x: CGFloat = 0
-        var y: CGFloat = 0
+        var xPos: CGFloat = 0
+        var yPos: CGFloat = 0
         var rowHeight: CGFloat = 0
 
         for subview in subviews {
             let size = subview.sizeThatFits(.unspecified)
-            if x + size.width > width, x > 0 {
-                x = 0
-                y += rowHeight + spacing
+            if xPos + size.width > width, xPos > 0 {
+                xPos = 0
+                yPos += rowHeight + spacing
                 rowHeight = 0
             }
-            positions.append(CGPoint(x: x, y: y))
+            positions.append(CGPoint(x: xPos, y: yPos))
             rowHeight = max(rowHeight, size.height)
-            x += size.width + spacing
+            xPos += size.width + spacing
         }
 
-        return (positions, CGSize(width: width, height: y + rowHeight))
+        return (positions, CGSize(width: width, height: yPos + rowHeight))
     }
 }
 
