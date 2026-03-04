@@ -42,7 +42,7 @@ struct LoginView: View {
                     Button {
                         // Pop to root, then push sign up
                         path.removeLast(path.count)
-                        path.append(AuthRoute.signUp)
+                        path.append(AuthRoute.pickGenres)
                     } label: {
                         HStack(spacing: 4) {
                             Text("Don't have an account?")

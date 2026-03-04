@@ -48,7 +48,7 @@ blnd_frontend/
 │   ├── Auth/
 │   │   ├── WelcomeView.swift
 │   │   ├── OnboardingView.swift
-│   │   ├── SignUpView.swift    caches credentials in OnboardingState, no API call
+│   │   ├── SignUpView.swift    step 3: collects credentials, calls signup API, has email validation
 │   │   ├── LoginView.swift     ✅ wired to authState.login()
 │   │   ├── PickGenresView.swift
 │   │   ├── RateMoviesView.swift
@@ -119,15 +119,19 @@ blnd_frontend/
 2. ~~Build foundation: `APIConfig`, `KeychainManager`, `APIClient`, `AuthModels`~~
 3. ~~Build auth flow: `AuthState`, onboarding views, `ContentView` auth gate~~
 4. ~~Build tab structure: `MainTabView` (Home, Friends, Groups, Profile)~~
+5. ~~Fix onboarding nav: `NavigationPath`-based routing, back buttons, Sign in/Create one links pop-and-push to avoid infinite loop~~
+6. ~~Onboarding state caching: `OnboardingState` preserves genres/ratings across back-navigation~~
+7. ~~Reorder onboarding: Pick Genres → Rate Movies → Create Account (signup API) → You're In~~
+8. ~~Email validation + password eye toggle on AppTextField~~
 
 ## Next Steps
 
-5. Wire onboarding genre/rating submission (needs backend profile update endpoint + POST /tracking per movie)
-6. Build movie features: `MovieModels`, `MoviesAPI`, `HomeView`, `MovieDetailView`
-7. Build social: `FriendsListView`, `GroupsListView`, `GroupDetailView`
-8. Build profile: `ProfileView` with user info + logout
-9. Build recommendations: wire `RecommendationsAPI` into Home + Groups
-10. Polish: empty states, error handling, search debounce
+9. Wire onboarding genre/rating submission (needs backend profile update endpoint + POST /tracking per movie)
+10. Build movie features: `MovieModels`, `MoviesAPI`, `HomeView`, `MovieDetailView`
+11. Build social: `FriendsListView`, `GroupsListView`, `GroupDetailView`
+12. Build profile: `ProfileView` with user info + logout
+13. Build recommendations: wire `RecommendationsAPI` into Home + Groups
+14. Polish: empty states, error handling, search debounce
 
 ## Linting
 
