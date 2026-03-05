@@ -111,7 +111,9 @@ struct SearchView: View {
         .background(AppTheme.background)
         .navigationBarBackButtonHidden()
         .onAppear {
-            isFieldFocused = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isFieldFocused = true
+            }
         }
         .onChange(of: searchText) { _, newValue in
             debounceSearch(newValue)

@@ -7,6 +7,8 @@ private enum HomeTab: String, CaseIterable {
 
 struct HomeView: View {
     @State private var selectedTab: HomeTab = .forYou
+    @State private var showSearch = false
+    @Namespace private var tabNamespace
 
     // For You
     @State private var recommendations: [RecommendedMovieResponse] = []
@@ -23,25 +25,19 @@ struct HomeView: View {
             GeometryReader { geo in
                 ScrollView {
                     VStack(spacing: 0) {
-                        NavigationLink {
-                            SearchView()
-                        } label: {
-                            HStack(spacing: 8) {
+                        HStack {
+                            Text("blnd")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundStyle(.white)
+                            Spacer()
+                            Button {
+                                showSearch = true
+                            } label: {
                                 Image(systemName: "magnifyingglass")
-                                    .foregroundStyle(AppTheme.textDim)
-                                    .font(.system(size: 15))
-
-                                Text("Search movies...")
-                                    .font(.system(size: 15))
-                                    .foregroundStyle(AppTheme.textMuted)
-
-                                Spacer()
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(.white)
                             }
-                            .padding(14)
-                            .background(AppTheme.card)
-                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
                         }
-                        .buttonStyle(.plain)
                         .padding(.top, 16)
                         .padding(.horizontal, 24)
                         .padding(.bottom, 20)
@@ -70,13 +66,18 @@ struct HomeView: View {
                     await loadForYou()
                 }
             }
+            .fullScreenCover(isPresented: $showSearch) {
+                NavigationStack {
+                    SearchView()
+                }
+            }
         }
     }
 
     // MARK: - Tab Picker
 
     private var tabPicker: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 24) {
             ForEach(HomeTab.allCases, id: \.self) { tab in
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
@@ -86,17 +87,31 @@ struct HomeView: View {
                         Task { await loadTrending() }
                     }
                 } label: {
-                    Text(tab.rawValue)
-                        .font(.system(size: 14, weight: .semibold))
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 16)
-                        .background(selectedTab == tab ? .white : AppTheme.card)
-                        .foregroundStyle(selectedTab == tab ? .black : AppTheme.textMuted)
-                        .clipShape(Capsule())
+                    VStack(spacing: 6) {
+                        Text(tab.rawValue)
+                            .font(.system(
+                                size: 15,
+                                weight: selectedTab == tab ? .bold : .medium
+                            ))
+                            .foregroundStyle(
+                                selectedTab == tab ? .white : AppTheme.textMuted
+                            )
+
+                        if selectedTab == tab {
+                            Rectangle()
+                                .fill(.white)
+                                .frame(height: 2)
+                                .matchedGeometryEffect(id: "underline", in: tabNamespace)
+                        } else {
+                            Rectangle()
+                                .fill(.clear)
+                                .frame(height: 2)
+                        }
+                    }
                 }
             }
-            Spacer()
         }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - For You

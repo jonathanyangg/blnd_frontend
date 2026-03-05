@@ -9,6 +9,9 @@ struct MovieDetailView: View {
     @State private var errorMessage: String?
     @State private var showRatingSheet = false
     @State private var isInWatchlist = false
+    @State private var isWatched = false
+    @State private var userRating: Double?
+    @State private var isWatchlistLoading = false
 
     private var displayTitle: String {
         movie?.title ?? title
@@ -51,13 +54,20 @@ struct MovieDetailView: View {
             }
         }
         .sheet(isPresented: $showRatingSheet) {
-            RateMovieSheet(title: displayTitle, year: displayYear)
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.visible)
-                .presentationBackground(AppTheme.card)
+            RateMovieSheet(
+                title: displayTitle,
+                year: displayYear,
+                tmdbId: tmdbId,
+                posterPath: movie?.posterPath,
+                onSaved: { isWatched = true }
+            )
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(AppTheme.card)
         }
         .task {
             await fetchMovie()
+            await checkWatchedStatus()
         }
     }
 
@@ -118,7 +128,7 @@ struct MovieDetailView: View {
             ratingSection(movie)
             overviewSection(movie)
             actionButtons
-            castSection(movie)
+            CastSectionView(cast: movie.cast)
         }
         .padding(.horizontal, 24)
     }
@@ -167,10 +177,16 @@ struct MovieDetailView: View {
         }
 
         HStack(spacing: 2) {
-            ForEach(0 ..< 5, id: \.self) { _ in
-                Image(systemName: "star")
-                    .font(.system(size: 16))
-                    .foregroundStyle(AppTheme.textDim)
+            ForEach(0 ..< 5, id: \.self) { index in
+                Image(
+                    systemName: userRating != nil && Double(index) < (userRating ?? 0)
+                        ? "star.fill" : "star"
+                )
+                .font(.system(size: 16))
+                .foregroundStyle(
+                    userRating != nil && Double(index) < (userRating ?? 0)
+                        ? .white : AppTheme.textDim
+                )
             }
         }
         .padding(.bottom, 8)
@@ -215,37 +231,98 @@ struct MovieDetailView: View {
             Button {
                 showRatingSheet = true
             } label: {
-                Text("Watched")
-                    .font(.system(size: 15, weight: .semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
-                    .background(AppTheme.card)
-                    .foregroundStyle(.white)
-                    .clipShape(
-                        RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                    )
+                HStack(spacing: 6) {
+                    if isWatched {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                    Text(isWatched ? "Watched" : "Watched")
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 13)
+                .background(isWatched ? .white : AppTheme.card)
+                .foregroundStyle(isWatched ? .black : .white)
+                .clipShape(
+                    RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
+                )
             }
 
             Button {
-                isInWatchlist.toggle()
+                Task { await toggleWatchlist() }
             } label: {
-                Text(isInWatchlist ? "In Watchlist" : "+ Watchlist")
-                    .font(.system(size: 15, weight: .semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
-                    .background(isInWatchlist ? AppTheme.card : .white)
-                    .foregroundStyle(isInWatchlist ? .white : .black)
-                    .clipShape(
-                        RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                    )
+                Group {
+                    if isWatchlistLoading {
+                        ProgressView()
+                            .tint(isInWatchlist ? .white : .black)
+                    } else {
+                        Text(isInWatchlist ? "In Watchlist" : "+ Watchlist")
+                    }
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 13)
+                .background(isInWatchlist ? AppTheme.card : .white)
+                .foregroundStyle(isInWatchlist ? .white : .black)
+                .clipShape(
+                    RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
+                )
             }
+            .disabled(isWatchlistLoading)
         }
         .padding(.bottom, 20)
     }
 
-    @ViewBuilder
-    private func castSection(_ movie: MovieResponse) -> some View {
-        if !movie.cast.isEmpty {
+    // MARK: - Helpers
+
+    private var heroPlaceholder: some View {
+        RoundedRectangle(cornerRadius: 14)
+            .fill(AppTheme.posterGradient)
+            .frame(height: 200)
+    }
+
+    private func fetchMovie() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            movie = try await MoviesAPI.getMovie(tmdbId: tmdbId)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
+    }
+
+    private func checkWatchedStatus() async {
+        if let watched = await TrackingAPI.getWatchedMovie(tmdbId: tmdbId) {
+            isWatched = true
+            userRating = watched.rating
+        }
+    }
+
+    private func toggleWatchlist() async {
+        isWatchlistLoading = true
+        do {
+            if isInWatchlist {
+                try await TrackingAPI.removeFromWatchlist(tmdbId: tmdbId)
+                isInWatchlist = false
+            } else {
+                _ = try await TrackingAPI.addToWatchlist(tmdbId: tmdbId)
+                isInWatchlist = true
+            }
+        } catch {
+            print("[MovieDetailView] watchlist toggle error: \(error)")
+        }
+        isWatchlistLoading = false
+    }
+}
+
+// MARK: - Cast Section
+
+private struct CastSectionView: View {
+    let cast: [CastMember]
+
+    var body: some View {
+        if !cast.isEmpty {
             Text("Cast")
                 .font(.system(size: 15, weight: .bold))
                 .foregroundStyle(.white)
@@ -253,7 +330,7 @@ struct MovieDetailView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(movie.cast) { member in
+                    ForEach(cast) { member in
                         VStack(spacing: 4) {
                             castAvatar(member)
                             Text(member.name)
@@ -266,14 +343,6 @@ struct MovieDetailView: View {
                 }
             }
         }
-    }
-
-    // MARK: - Helpers
-
-    private var heroPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 14)
-            .fill(AppTheme.posterGradient)
-            .frame(height: 200)
     }
 
     @ViewBuilder
@@ -294,17 +363,6 @@ struct MovieDetailView: View {
         } else {
             AvatarView(size: 48)
         }
-    }
-
-    private func fetchMovie() async {
-        isLoading = true
-        errorMessage = nil
-        do {
-            movie = try await MoviesAPI.getMovie(tmdbId: tmdbId)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        isLoading = false
     }
 }
 

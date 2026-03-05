@@ -3,18 +3,23 @@ import SwiftUI
 struct RateMovieSheet: View {
     let title: String
     let year: String
+    let tmdbId: Int
+    var posterPath: String?
+    var onSaved: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
-    @State private var rating: Int = 4
+    @State private var rating: Double = 4
     @State private var note = ""
+    @State private var isSaving = false
+    @State private var saveError: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Movie info row
             HStack(spacing: 14) {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(AppTheme.posterGradient)
+                posterThumbnail
                     .frame(width: 44, height: 62)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
@@ -33,11 +38,13 @@ struct RateMovieSheet: View {
             HStack(spacing: 12) {
                 ForEach(0 ..< 5, id: \.self) { index in
                     Button {
-                        rating = index + 1
+                        rating = Double(index + 1)
                     } label: {
                         Image(systemName: "star.fill")
                             .font(.system(size: 28))
-                            .foregroundStyle(index < rating ? .white : AppTheme.border)
+                            .foregroundStyle(
+                                Double(index) < rating ? .white : AppTheme.border
+                            )
                     }
                 }
             }
@@ -51,19 +58,61 @@ struct RateMovieSheet: View {
                 .background(Color(hex: 0x111111))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .lineLimit(3 ... 5)
-                .padding(.bottom, 16)
+                .padding(.bottom, 8)
 
-            AppButton(label: "Save") {
-                dismiss()
+            if let saveError {
+                Text(saveError)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.red)
+                    .padding(.bottom, 8)
+            }
+
+            AppButton(label: "Save", isLoading: isSaving) {
+                Task { await save() }
             }
         }
         .padding(.horizontal, 20)
         .padding(.top, 20)
         .padding(.bottom, 32)
     }
+
+    @ViewBuilder
+    private var posterThumbnail: some View {
+        if let path = posterPath, let url = URL(string: "https://image.tmdb.org/t/p/w154\(path)") {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case let .success(image):
+                    image.resizable().aspectRatio(contentMode: .fill)
+                default:
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(AppTheme.posterGradient)
+                }
+            }
+        } else {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(AppTheme.posterGradient)
+        }
+    }
+
+    private func save() async {
+        isSaving = true
+        saveError = nil
+        do {
+            _ = try await TrackingAPI.trackMovie(
+                tmdbId: tmdbId,
+                rating: rating,
+                review: note.isEmpty ? nil : note
+            )
+            onSaved?()
+            dismiss()
+        } catch {
+            saveError = error.localizedDescription
+        }
+        isSaving = false
+    }
 }
 
 #Preview {
-    RateMovieSheet(title: "Oppenheimer", year: "2023")
+    RateMovieSheet(title: "Oppenheimer", year: "2023", tmdbId: 872_585)
         .background(AppTheme.card)
 }

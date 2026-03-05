@@ -30,12 +30,14 @@ blnd_frontend/
 ├── Models/
 │   ├── AuthModels.swift        done SignupRequest, LoginRequest, LoginResponse, UserResponse
 │   ├── MovieModels.swift       done Genre, CastMember, MovieResponse, MovieSearchResult, RecommendedMovieResponse, RecommendationsResponse
+│   ├── TrackingModels.swift    done TrackMovieRequest, WatchedMovieResponse, WatchlistMovieResponse, etc.
 │   ├── UserModels.swift        (planned)
 │   └── GroupModels.swift       (planned)
 ├── Networking/
-│   ├── APIClient.swift         done singleton, generic request(), Bearer token injection, debug logging
+│   ├── APIClient.swift         done singleton, request(), requestVoid(), Bearer token, notFound error
 │   ├── AuthAPI.swift           done signup(), login(), me()
 │   ├── MoviesAPI.swift         done search(), trending(), getMovie() + RecommendationsAPI
+│   ├── TrackingAPI.swift       done trackMovie, getWatchHistory, getWatchedMovie, addToWatchlist, removeFromWatchlist, getWatchlist
 │   └── GroupsAPI.swift         (planned)
 ├── State/
 │   ├── AuthState.swift         done @Observable, signup/login/logout/fetchCurrentUser
@@ -54,10 +56,10 @@ blnd_frontend/
 │   │   ├── RateMoviesView.swift
 │   │   └── OnboardingCompleteView.swift  done sets authState.isAuthenticated = true
 │   ├── Home/
-│   │   ├── HomeView.swift      done FYP + Trending tabs, pull-to-refresh, real data
-│   │   ├── SearchResultsView.swift  done full-page SearchView with live debounced search
-│   │   ├── MovieDetailView.swift    done fetches by tmdbId, AsyncImage posters, cast
-│   │   └── RateMovieSheet.swift
+│   │   ├── HomeView.swift      done FYP + Trending underline tabs, search icon → fullScreenCover
+│   │   ├── SearchResultsView.swift  done fullscreen SearchView with live debounced search, auto-focus
+│   │   ├── MovieDetailView.swift    done fetches by tmdbId, watched/watchlist API wired, rating display
+│   │   └── RateMovieSheet.swift     done wired to POST /tracking/, AsyncImage poster, loading state
 │   ├── Friends/
 │   │   ├── FriendsListView.swift
 │   │   ├── FriendProfileView.swift
@@ -67,7 +69,7 @@ blnd_frontend/
 │   │   ├── GroupDetailView.swift
 │   │   └── CreateGroupView.swift
 │   ├── Profile/
-│   │   ├── ProfileView.swift
+│   │   ├── ProfileView.swift   done real user data, watched/watchlist tabs with poster grids
 │   │   ├── SettingsView.swift  done logout wired
 │   │   └── Components/
 │   └── Shared/
@@ -101,7 +103,7 @@ blnd_frontend/
 
 - Backend repo: ../blnd_backend/ (sibling directory)
 - Backend CLAUDE.md: ../blnd_backend/CLAUDE.md (read for architecture/status)
-- OpenAPI spec: curl http://localhost:8000/openapi.json (when backend is running)
+- **OpenAPI spec**: `../blnd_backend/openapi.json` — auto-generated on every backend startup (always up-to-date). Read this file for the full API contract (endpoints, params, request/response schemas). Also available at http://localhost:8000/openapi.json when running.
 - Endpoint source: ../blnd_backend/app/{domain}/views.py for route signatures
 - Schemas: ../blnd_backend/app/{domain}/schemas.py for request/response models
 
@@ -137,14 +139,19 @@ blnd_frontend/
 11. Full-page search: SearchView with live debounced search (350ms), auto-focus
 12. Movie detail: fetches by tmdbId, AsyncImage posters/backdrops, cast photos
 13. MovieCard: AsyncImage poster support with gradient fallback
+14. Tracking/watchlist API: TrackingModels, TrackingAPI (6 endpoints), APIClient requestVoid + notFound
+15. RateMovieSheet wired to POST /tracking/ with loading/error states
+16. MovieDetailView: watched status check, watchlist toggle, rating display
+17. HomeView: TikTok-style underline tab picker, search icon → fullScreenCover
+18. ProfileView: real user data, watched/watchlist poster grids from API
+19. Watchlist endpoints moved to /watchlist/ (separate from /tracking/)
 
 ## Next Steps
 
-14. Wire onboarding genre/rating submission (needs backend profile update endpoint + POST /tracking per movie)
-15. Build social: FriendsListView, GroupsListView, GroupDetailView
-16. Build profile: ProfileView with user info + logout
-17. Build recommendations in Groups
-18. Polish: empty states, error handling
+20. Wire onboarding genre/rating submission (needs backend profile update endpoint + POST /tracking per movie)
+21. Build social: FriendsListView, GroupsListView, GroupDetailView
+22. Build recommendations in Groups
+23. Polish: empty states, error handling
 
 ## Linting
 
@@ -157,4 +164,4 @@ blnd_frontend/
 
 ## Last Updated
 
-2026-03-04
+2026-03-05

@@ -4,6 +4,7 @@ enum APIError: LocalizedError {
     case invalidURL
     case unauthorized
     case badRequest(String)
+    case notFound
     case serverError(Int)
     case decodingError
     case networkError(Error)
@@ -13,6 +14,7 @@ enum APIError: LocalizedError {
         case .invalidURL: return "Invalid URL"
         case .unauthorized: return "Invalid credentials"
         case let .badRequest(message): return message
+        case .notFound: return "Not found"
         case let .serverError(code): return "Server error (\(code))"
         case .decodingError: return "Unexpected response format"
         case let .networkError(error): return error.localizedDescription
@@ -64,6 +66,55 @@ final class APIClient {
         return try handleResponse(http: http, data: data)
     }
 
+    func requestVoid(
+        endpoint: String,
+        method: String = "GET",
+        body: (any Encodable)? = nil,
+        authenticated: Bool = false
+    ) async throws {
+        guard let url = URL(string: APIConfig.baseURL + endpoint) else {
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if authenticated, let token = KeychainManager.readString(key: "accessToken") {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        if let body {
+            request.httpBody = try encoder.encode(body)
+        }
+
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw APIError.networkError(error)
+        }
+
+        guard let http = response as? HTTPURLResponse else {
+            throw APIError.serverError(0)
+        }
+
+        switch http.statusCode {
+        case 200 ..< 300:
+            return
+        case 401:
+            throw APIError.unauthorized
+        case 404:
+            throw APIError.notFound
+        case 400 ..< 500:
+            let detail = (try? decoder.decode([String: String].self, from: data))?["detail"]
+            throw APIError.badRequest(detail ?? "Request failed")
+        default:
+            throw APIError.serverError(http.statusCode)
+        }
+    }
+
     private func handleResponse<T: Decodable>(http: HTTPURLResponse, data: Data) throws -> T {
         switch http.statusCode {
         case 200 ..< 300:
@@ -78,6 +129,8 @@ final class APIClient {
             }
         case 401:
             throw APIError.unauthorized
+        case 404:
+            throw APIError.notFound
         case 400 ..< 500:
             let detail = (try? decoder.decode([String: String].self, from: data))?["detail"]
             throw APIError.badRequest(detail ?? "Request failed")

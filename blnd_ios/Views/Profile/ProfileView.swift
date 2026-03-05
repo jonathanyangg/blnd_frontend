@@ -1,15 +1,24 @@
 import SwiftUI
 
+private enum ProfileTab: String, CaseIterable {
+    case watched = "Watched"
+    case watchlist = "Watchlist"
+}
+
 struct ProfileView: View {
+    @Environment(AuthState.self) private var authState
     @State private var showSettings = false
+    @State private var selectedTab: ProfileTab = .watched
+    @Namespace private var profileTabNamespace
 
-    private let stats: [(value: String, label: String)] = [
-        ("156", "Rated"),
-        ("12", "Friends"),
-        ("3", "Groups"),
-    ]
+    @State private var watchedMovies: [WatchedMovieResponse] = []
+    @State private var watchlistMovies: [WatchlistMovieResponse] = []
+    @State private var watchedTotal = 0
+    @State private var watchlistTotal = 0
+    @State private var isLoadingWatched = false
+    @State private var isLoadingWatchlist = false
 
-    private let ratingColumns = [
+    private let posterColumns = [
         GridItem(.flexible(), spacing: 8),
         GridItem(.flexible(), spacing: 8),
         GridItem(.flexible(), spacing: 8),
@@ -19,93 +28,274 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Settings gear
-                    HStack {
-                        Spacer()
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Image(systemName: "gearshape")
-                                .font(.system(size: 20))
-                                .foregroundStyle(AppTheme.textDim)
-                        }
+                    settingsRow
+                    userInfo
+                    statsRow
+                    tabPicker
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 16)
+
+                    switch selectedTab {
+                    case .watched:
+                        watchedGrid
+                    case .watchlist:
+                        watchlistGrid
                     }
-                    .padding(.top, 20)
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 16)
-
-                    // Avatar and info
-                    VStack(spacing: 0) {
-                        AvatarView(size: 80)
-                            .padding(.bottom, 12)
-
-                        Text("Jon M.")
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundStyle(.white)
-
-                        Text("@jon_m")
-                            .font(.system(size: 14))
-                            .foregroundStyle(AppTheme.textMuted)
-                    }
-                    .padding(.bottom, 24)
-
-                    // Stats row
-                    HStack {
-                        ForEach(stats, id: \.label) { stat in
-                            VStack(spacing: 2) {
-                                Text(stat.value)
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundStyle(.white)
-                                Text(stat.label)
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(AppTheme.textMuted)
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .padding(.vertical, 16)
-                    .overlay(alignment: .top) {
-                        Divider().background(AppTheme.cardSecondary)
-                    }
-                    .overlay(alignment: .bottom) {
-                        Divider().background(AppTheme.cardSecondary)
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 28)
-
-                    // Your Ratings
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Your Ratings")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(.white)
-
-                        LazyVGrid(columns: ratingColumns, spacing: 8) {
-                            ForEach(0 ..< 6, id: \.self) { index in
-                                ZStack(alignment: .bottomTrailing) {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(AppTheme.posterGradient(angle: 120 + index * 20))
-                                        .frame(height: 100)
-
-                                    Image(systemName: "star.fill")
-                                        .font(.system(size: 10))
-                                        .foregroundStyle(.white)
-                                        .padding(4)
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 32)
                 }
             }
             .background(AppTheme.background)
             .navigationDestination(isPresented: $showSettings) {
                 SettingsView()
             }
+            .task {
+                await authState.fetchCurrentUser()
+                await loadWatched()
+                await loadWatchlist()
+            }
         }
+    }
+
+    // MARK: - Settings
+
+    private var settingsRow: some View {
+        HStack {
+            Spacer()
+            Button {
+                showSettings = true
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 20))
+                    .foregroundStyle(AppTheme.textDim)
+            }
+        }
+        .padding(.top, 20)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 16)
+    }
+
+    // MARK: - User Info
+
+    private var userInfo: some View {
+        VStack(spacing: 0) {
+            AvatarView(size: 80)
+                .padding(.bottom, 12)
+
+            Text(authState.currentUser?.displayName ?? authState.currentUser?.username ?? "User")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(.white)
+
+            Text("@\(authState.currentUser?.username ?? "")")
+                .font(.system(size: 14))
+                .foregroundStyle(AppTheme.textMuted)
+        }
+        .padding(.bottom, 24)
+    }
+
+    // MARK: - Stats
+
+    private var statsRow: some View {
+        let stats: [(value: String, label: String)] = [
+            ("\(watchedTotal)", "Watched"),
+            ("\(watchlistTotal)", "Watchlist"),
+            ("0", "Friends"),
+            ("0", "Groups"),
+        ]
+        return HStack {
+            ForEach(stats, id: \.label) { stat in
+                VStack(spacing: 2) {
+                    Text(stat.value)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.white)
+                    Text(stat.label)
+                        .font(.system(size: 12))
+                        .foregroundStyle(AppTheme.textMuted)
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.vertical, 16)
+        .overlay(alignment: .top) {
+            Divider().background(AppTheme.cardSecondary)
+        }
+        .overlay(alignment: .bottom) {
+            Divider().background(AppTheme.cardSecondary)
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 20)
+    }
+
+    // MARK: - Tab Picker
+
+    private var tabPicker: some View {
+        HStack(spacing: 24) {
+            ForEach(ProfileTab.allCases, id: \.self) { tab in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedTab = tab
+                    }
+                } label: {
+                    VStack(spacing: 6) {
+                        Text(tab.rawValue)
+                            .font(.system(
+                                size: 15,
+                                weight: selectedTab == tab ? .bold : .medium
+                            ))
+                            .foregroundStyle(
+                                selectedTab == tab ? .white : AppTheme.textMuted
+                            )
+
+                        if selectedTab == tab {
+                            Rectangle()
+                                .fill(.white)
+                                .frame(height: 2)
+                                .matchedGeometryEffect(
+                                    id: "profileUnderline",
+                                    in: profileTabNamespace
+                                )
+                        } else {
+                            Rectangle()
+                                .fill(.clear)
+                                .frame(height: 2)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Watched Grid
+
+    private var watchedGrid: some View {
+        Group {
+            if isLoadingWatched {
+                ProgressView()
+                    .tint(.white)
+                    .padding(.top, 40)
+            } else if watchedMovies.isEmpty {
+                emptyState(message: "No watched movies yet")
+            } else {
+                LazyVGrid(columns: posterColumns, spacing: 8) {
+                    ForEach(watchedMovies) { movie in
+                        NavigationLink {
+                            MovieDetailView(tmdbId: movie.tmdbId, title: movie.title)
+                        } label: {
+                            posterTile(
+                                path: movie.posterPath,
+                                rating: movie.rating
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+        }
+    }
+
+    // MARK: - Watchlist Grid
+
+    private var watchlistGrid: some View {
+        Group {
+            if isLoadingWatchlist {
+                ProgressView()
+                    .tint(.white)
+                    .padding(.top, 40)
+            } else if watchlistMovies.isEmpty {
+                emptyState(message: "Your watchlist is empty")
+            } else {
+                LazyVGrid(columns: posterColumns, spacing: 8) {
+                    ForEach(watchlistMovies) { movie in
+                        NavigationLink {
+                            MovieDetailView(tmdbId: movie.tmdbId, title: movie.title)
+                        } label: {
+                            posterTile(path: movie.posterPath, rating: nil)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+        }
+    }
+
+    // MARK: - Poster Tile
+
+    private func posterTile(path: String?, rating: Double?) -> some View {
+        ZStack(alignment: .bottomTrailing) {
+            if let path, let url = URL(string: "https://image.tmdb.org/t/p/w342\(path)") {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case let .success(image):
+                        image
+                            .resizable()
+                            .aspectRatio(2 / 3, contentMode: .fill)
+                    default:
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(AppTheme.posterGradient)
+                            .aspectRatio(2 / 3, contentMode: .fill)
+                    }
+                }
+            } else {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(AppTheme.posterGradient)
+                    .aspectRatio(2 / 3, contentMode: .fill)
+            }
+
+            if let rating {
+                HStack(spacing: 2) {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 8))
+                    Text(String(format: "%.0f", rating))
+                        .font(.system(size: 10, weight: .bold))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 3)
+                .background(.black.opacity(0.7))
+                .clipShape(Capsule())
+                .padding(4)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func emptyState(message: String) -> some View {
+        Text(message)
+            .font(.system(size: 14))
+            .foregroundStyle(AppTheme.textMuted)
+            .frame(maxWidth: .infinity)
+            .padding(.top, 40)
+    }
+
+    // MARK: - Data Loading
+
+    private func loadWatched() async {
+        isLoadingWatched = true
+        do {
+            let response = try await TrackingAPI.getWatchHistory(limit: 50)
+            watchedMovies = response.results
+            watchedTotal = response.total
+        } catch {
+            print("[ProfileView] loadWatched error: \(error)")
+        }
+        isLoadingWatched = false
+    }
+
+    private func loadWatchlist() async {
+        isLoadingWatchlist = true
+        do {
+            let response = try await TrackingAPI.getWatchlist(limit: 50)
+            watchlistMovies = response.results
+            watchlistTotal = response.total
+        } catch {
+            print("[ProfileView] loadWatchlist error: \(error)")
+        }
+        isLoadingWatchlist = false
     }
 }
 
 #Preview {
     ProfileView()
+        .environment(AuthState())
 }
