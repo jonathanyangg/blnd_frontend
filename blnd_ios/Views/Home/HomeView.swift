@@ -179,14 +179,27 @@ struct HomeView: View {
                                 height: cardHeight
                             )
                             .overlay(alignment: .topLeading) {
-                                Text("#\(index + 1)")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 3)
-                                    .background(.black.opacity(0.7))
-                                    .clipShape(Capsule())
-                                    .foregroundStyle(.white)
-                                    .padding(6)
+                                HStack(spacing: 4) {
+                                    Text("#\(index + 1)")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 3)
+                                        .background(.black.opacity(0.7))
+                                        .clipShape(Capsule())
+                                    if let pct = movie.matchPercent {
+                                        Text("\(pct)%")
+                                            .font(.system(
+                                                size: 10,
+                                                weight: .bold
+                                            ))
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 3)
+                                            .background(.black.opacity(0.7))
+                                            .clipShape(Capsule())
+                                    }
+                                }
+                                .foregroundStyle(.white)
+                                .padding(6)
                             }
                         }
                         .buttonStyle(.plain)
@@ -234,22 +247,14 @@ struct HomeView: View {
     // MARK: - Data Loading
 
     private func loadForYou() async {
-        guard recommendations.isEmpty else {
-            print("[HomeView] loadForYou: skipped, already have \(recommendations.count) items")
-            return
-        }
-        print("[HomeView] loadForYou: starting fetch")
+        guard recommendations.isEmpty else { return }
         isLoadingFYP = true
         fypError = nil
         do {
             let response = try await RecommendationsAPI.getRecommendations()
             recommendations = response.results
-            print("[HomeView] loadForYou: got \(response.results.count) results")
         } catch {
-            if Task.isCancelled || (error as? URLError)?.code == .cancelled {
-                print("[HomeView] loadForYou: cancelled, ignoring")
-            } else {
-                print("[HomeView] loadForYou: error — \(error)")
+            if !Task.isCancelled {
                 fypError = error.localizedDescription
             }
         }
@@ -257,22 +262,14 @@ struct HomeView: View {
     }
 
     private func loadTrending() async {
-        guard trendingMovies.isEmpty else {
-            print("[HomeView] loadTrending: skipped, already have \(trendingMovies.count) items")
-            return
-        }
-        print("[HomeView] loadTrending: starting fetch")
+        guard trendingMovies.isEmpty else { return }
         isLoadingTrending = true
         trendingError = nil
         do {
             let response = try await MoviesAPI.trending()
             trendingMovies = response.results
-            print("[HomeView] loadTrending: got \(response.results.count) results")
         } catch {
-            if Task.isCancelled || (error as? URLError)?.code == .cancelled {
-                print("[HomeView] loadTrending: cancelled, ignoring")
-            } else {
-                print("[HomeView] loadTrending: error — \(error)")
+            if !Task.isCancelled {
                 trendingError = error.localizedDescription
             }
         }
@@ -281,48 +278,15 @@ struct HomeView: View {
 
     @MainActor
     private func refreshCurrentTab() async {
-        print("[HomeView] refreshCurrentTab: \(selectedTab.rawValue)")
         switch selectedTab {
         case .forYou:
             recommendations = []
             fypError = nil
-            isLoadingFYP = true
-            Task.detached {
-                do {
-                    let response = try await RecommendationsAPI.getRecommendations()
-                    await MainActor.run {
-                        recommendations = response.results
-                        isLoadingFYP = false
-                        print("[HomeView] refresh FYP: got \(response.results.count) results")
-                    }
-                } catch {
-                    await MainActor.run {
-                        print("[HomeView] refresh FYP error: \(error)")
-                        fypError = error.localizedDescription
-                        isLoadingFYP = false
-                    }
-                }
-            }
+            await loadForYou()
         case .trending:
             trendingMovies = []
             trendingError = nil
-            isLoadingTrending = true
-            Task.detached {
-                do {
-                    let response = try await MoviesAPI.trending()
-                    await MainActor.run {
-                        trendingMovies = response.results
-                        isLoadingTrending = false
-                        print("[HomeView] refresh trending: got \(response.results.count) results")
-                    }
-                } catch {
-                    await MainActor.run {
-                        print("[HomeView] refresh trending error: \(error)")
-                        trendingError = error.localizedDescription
-                        isLoadingTrending = false
-                    }
-                }
-            }
+            await loadTrending()
         }
     }
 }

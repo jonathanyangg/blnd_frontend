@@ -36,13 +36,20 @@ struct MovieResponse: Codable, Identifiable {
     let tagline: String?
     let backdropPath: String?
     let imdbId: String?
+    let matchScore: Double?
 
     var id: Int {
         tmdbId
     }
 
+    var matchPercent: Int? {
+        guard let matchScore else { return nil }
+        return Int(matchScore * 100)
+    }
+
     var yearString: String {
-        year.map(String.init) ?? ""
+        guard let year else { return "" }
+        return String(year)
     }
 
     var runtimeFormatted: String? {
@@ -65,6 +72,7 @@ struct MovieResponse: Codable, Identifiable {
         case director, cast, tagline
         case backdropPath = "backdrop_path"
         case imdbId = "imdb_id"
+        case matchScore = "match_score"
     }
 }
 

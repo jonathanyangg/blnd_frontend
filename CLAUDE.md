@@ -12,10 +12,10 @@ SwiftUI iOS app for blnd — movie taste syncing with AI recommendations.
 ## Architecture
 
 - **MVVM-ish**: Views own local state, shared state via `@Observable` + `.environment()`
-- **Networking**: `APIClient` singleton → domain-specific static API enums (`AuthAPI`, `MoviesAPI`, etc.)
+- **Networking**: `APIClient` singleton → domain-specific static API enums (`AuthAPI`, `MoviesAPI`, `FriendsAPI`, `GroupsAPI`, etc.)
 - **Auth**: JWT stored in Keychain, injected as Bearer token by `APIClient`
 - **Onboarding nav**: `WelcomeView` owns a `NavigationStack(path:)` with `AuthRoute` enum; child views take `@Binding var path`. Signup API call happens on SignUpView (step 3), credentials collected last so duplicate email errors show immediately.
-- **Onboarding state**: `OnboardingState` caches credentials + genres + ratings so back-navigation preserves selections. Genre/rating endpoints not yet wired (backend needs profile update endpoint).
+- **Onboarding state**: `OnboardingState` caches credentials + genres + ratings so back-navigation preserves selections. Genres submitted via `PATCH /auth/profile`, ratings via `POST /tracking/` per movie — both fire on OnboardingCompleteView "Let's go" tap.
 - **Models**: Codable structs matching backend Pydantic schemas (snake_case → camelCase via CodingKeys)
 
 ## Project Structure
@@ -28,20 +28,21 @@ blnd_frontend/
 │   ├── APIConfig.swift         done base URL constant
 │   └── KeychainManager.swift   done save/read/delete tokens via Security framework
 ├── Models/
-│   ├── AuthModels.swift        done SignupRequest, LoginRequest, LoginResponse, UserResponse
-│   ├── MovieModels.swift       done Genre, CastMember, MovieResponse, MovieSearchResult, RecommendedMovieResponse, RecommendationsResponse
+│   ├── AuthModels.swift        done SignupRequest, LoginRequest, UpdateProfileRequest, LoginResponse, UserResponse
+│   ├── MovieModels.swift       done Genre, CastMember, MovieResponse (incl matchScore, trailerUrl), MovieSearchResult, RecommendedMovieResponse, RecommendationsResponse
 │   ├── TrackingModels.swift    done TrackMovieRequest, WatchedMovieResponse, WatchlistMovieResponse, etc.
-│   ├── UserModels.swift        (planned)
-│   └── GroupModels.swift       (planned)
+│   ├── FriendModels.swift      done SendFriendRequestRequest, FriendResponse, FriendRequestResponse, FriendListResponse, PendingRequestsResponse
+│   └── GroupModels.swift       done CreateGroupRequest, AddMemberRequest, GroupResponse, GroupDetailResponse, GroupMemberResponse, GroupRecMovieResponse, etc.
 ├── Networking/
 │   ├── APIClient.swift         done singleton, request(), requestVoid(), Bearer token, notFound error
-│   ├── AuthAPI.swift           done signup(), login(), me()
+│   ├── AuthAPI.swift           done signup(), login(), me(), updateProfile()
 │   ├── MoviesAPI.swift         done search(), trending(), getMovie() + RecommendationsAPI
 │   ├── TrackingAPI.swift       done trackMovie, getWatchHistory, getWatchedMovie, addToWatchlist, removeFromWatchlist, getWatchlist
-│   └── GroupsAPI.swift         (planned)
+│   ├── FriendsAPI.swift        done listFriends, sendRequest, getPendingRequests, acceptRequest, rejectRequest, removeFriend
+│   └── GroupsAPI.swift         done listGroups, createGroup, getGroup, deleteGroup, addMember, kickMember, leaveGroup, getRecommendations, getWatchlist, addToWatchlist, removeFromWatchlist
 ├── State/
 │   ├── AuthState.swift         done @Observable, signup/login/logout/fetchCurrentUser
-│   └── OnboardingState.swift   caches name/email/password/genres/ratings during onboarding
+│   └── OnboardingState.swift   caches name/email/password/genres/ratings (tmdbId→liked) during onboarding
 ├── Theme/
 │   └── AppTheme.swift
 ├── Views/
@@ -52,22 +53,22 @@ blnd_frontend/
 │   │   ├── OnboardingView.swift
 │   │   ├── SignUpView.swift    step 3: collects credentials, calls signup API, has email validation
 │   │   ├── LoginView.swift     done wired to authState.login()
-│   │   ├── PickGenresView.swift
-│   │   ├── RateMoviesView.swift
-│   │   └── OnboardingCompleteView.swift  done sets authState.isAuthenticated = true
+│   │   ├── PickGenresView.swift  done genre selection cached in OnboardingState
+│   │   ├── RateMoviesView.swift  done swipe cards with real TMDB IDs, ratings cached in OnboardingState
+│   │   └── OnboardingCompleteView.swift  done submits genres + ratings to API, then sets authenticated
 │   ├── Home/
-│   │   ├── HomeView.swift      done FYP + Trending underline tabs, search icon → fullScreenCover
+│   │   ├── HomeView.swift      done FYP + Trending tabs, match % badges on trending, pull-to-refresh
 │   │   ├── SearchResultsView.swift  done fullscreen SearchView with live debounced search, auto-focus
-│   │   ├── MovieDetailView.swift    done fetches by tmdbId, watched/watchlist API wired, rating display
+│   │   ├── MovieDetailView.swift    done fetches by tmdbId, match score badge, tappable trailer, watched/watchlist
 │   │   └── RateMovieSheet.swift     done wired to POST /tracking/, AsyncImage poster, loading state
 │   ├── Friends/
-│   │   ├── FriendsListView.swift
-│   │   ├── FriendProfileView.swift
-│   │   └── AddFriendView.swift
+│   │   ├── FriendsListView.swift    done real data, Friends/Requests tabs, accept/reject, pull-to-refresh
+│   │   ├── FriendProfileView.swift  done real friend data, remove friend with confirmation
+│   │   └── AddFriendView.swift      done send friend request by username, success/error feedback
 │   ├── Groups/
-│   │   ├── GroupsListView.swift
-│   │   ├── GroupDetailView.swift
-│   │   └── CreateGroupView.swift
+│   │   ├── GroupsListView.swift     done real data, member count + avatars, pull-to-refresh
+│   │   ├── GroupDetailView.swift    done blend picks, group watchlist, members list, add member
+│   │   └── CreateGroupView.swift    done creates group via API, loading/error states
 │   ├── Profile/
 │   │   ├── ProfileView.swift   done real user data, watched/watchlist tabs with poster grids
 │   │   ├── SettingsView.swift  done logout wired
@@ -96,7 +97,7 @@ blnd_frontend/
 
 - Runs at `http://localhost:8000` (dev)
 - Start with: `cd ../blnd_backend && python -m uvicorn main:app --reload`
-- Auth, movies, recommendations endpoints are live
+- Auth, movies, recommendations, friends, groups endpoints are live
 - For device testing: change APIConfig.baseURL to Mac's local IP, run backend with --host 0.0.0.0
 
 ## Backend Context
@@ -145,22 +146,32 @@ blnd_frontend/
 17. HomeView: TikTok-style underline tab picker, search icon → fullScreenCover
 18. ProfileView: real user data, watched/watchlist poster grids from API
 19. Watchlist endpoints moved to /watchlist/ (separate from /tracking/)
+20. Friends feature: FriendModels, FriendsAPI (6 endpoints), FriendsListView (friends/requests tabs, accept/reject), AddFriendView (send by username), FriendProfileView (remove friend)
+21. Groups feature: GroupModels, GroupsAPI (11 endpoints), GroupsListView (real data), GroupDetailView (blend picks + watchlist + members + add member), CreateGroupView (API wired)
+22. Onboarding wiring: genres submitted via PATCH /auth/profile, movie ratings via POST /tracking/ per movie, RateMoviesView uses real TMDB IDs, OnboardingCompleteView submits before setting authenticated
+23. MovieResponse: added matchScore field, match % badge on trending cards + movie detail, tappable trailer button via Link
+24. AuthAPI: added updateProfile() for PATCH /auth/profile (display_name, taste_bio, favorite_genres)
 
 ## Next Steps
 
-20. Wire onboarding genre/rating submission (needs backend profile update endpoint + POST /tracking per movie)
-21. Build social: FriendsListView, GroupsListView, GroupDetailView
-22. Build recommendations in Groups
-23. Polish: empty states, error handling
+25. Profile edit UI (display name, taste bio — backend already wired)
+26. Re-rate a movie (PATCH /tracking/{tmdb_id})
+27. Delete a watched movie (DELETE /tracking/{tmdb_id})
+28. Fix recommendations refresh (POST /recommendations/me/refresh)
+29. Letterboxd import (POST /import/letterboxd — file upload in settings)
+30. Polish: empty states, error handling
 
 ## Linting
 
 - Pre-commit hooks: swiftlint + swiftformat + codespell
 - Config: `.swiftformat` at repo root (maxwidth 120, trailing commas, `before-first` wrapping)
-- swiftlint: type_name (uppercase start), cyclomatic_complexity (max 10), line_length (max 120)
+- swiftlint: type_name (uppercase start), cyclomatic_complexity (max 10), line_length (max 120), type_body_length (max 300)
 - Use `case let .foo(bar)` not `case .foo(let bar)` (hoistPatternLet)
-- Use `///` doc comments for API declarations
+- Use `///` doc comments for API declarations, `//` for inline/property comments
 - Use spaces around range operators (`200 ..< 300`)
+- Number literals: 6+ digits need underscore grouping (e.g. `872_585`), 5 or fewer don't (e.g. `76341`)
+- Computed properties: use multi-line bodies (swiftformat `wrapPropertyBodies` rule)
+- Avoid multiline `if let` with brace on new line (swiftlint `opening_brace` conflicts); keep on single line when possible
 
 ## Last Updated
 

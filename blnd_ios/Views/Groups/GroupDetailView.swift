@@ -135,9 +135,9 @@ struct GroupDetailView: View {
                             MovieDetailView(tmdbId: movie.tmdbId)
                         } label: {
                             MovieCard(
+                                posterPath: movie.posterPath,
                                 width: 90,
-                                height: 130,
-                                posterPath: movie.posterPath
+                                height: 130
                             )
                         }
                     }
@@ -188,9 +188,9 @@ struct GroupDetailView: View {
     ) -> some View {
         HStack(spacing: 12) {
             MovieCard(
+                posterPath: item.posterPath,
                 width: 40,
-                height: 56,
-                posterPath: item.posterPath
+                height: 56
             )
 
             VStack(alignment: .leading, spacing: 2) {

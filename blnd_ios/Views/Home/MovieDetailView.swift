@@ -103,13 +103,15 @@ struct MovieDetailView: View {
                 heroPlaceholder
             }
 
-            if movie.trailerUrl != nil {
-                Image(systemName: "play.fill")
-                    .font(.system(size: 22))
-                    .foregroundStyle(.white)
-                    .frame(width: 52, height: 52)
-                    .background(.white.opacity(0.2))
-                    .clipShape(Circle())
+            if let trailerUrl = movie.trailerUrl, let url = URL(string: trailerUrl) {
+                Link(destination: url) {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(.white)
+                        .frame(width: 52, height: 52)
+                        .background(.white.opacity(0.2))
+                        .clipShape(Circle())
+                }
             }
         }
         .padding(.top, 12)
@@ -125,6 +127,7 @@ struct MovieDetailView: View {
 
             metaRow(movie)
             genreRow(movie)
+            matchScoreBadge(movie)
             ratingSection(movie)
             overviewSection(movie)
             actionButtons
@@ -159,6 +162,24 @@ struct MovieDetailView: View {
                 }
             }
             .padding(.bottom, 12)
+        }
+    }
+
+    @ViewBuilder
+    private func matchScoreBadge(_ movie: MovieResponse) -> some View {
+        if let pct = movie.matchPercent {
+            HStack(spacing: 6) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 13))
+                Text("\(pct)% match for you")
+                    .font(.system(size: 13, weight: .semibold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(AppTheme.card)
+            .clipShape(Capsule())
+            .padding(.bottom, 10)
         }
     }
 
@@ -227,50 +248,13 @@ struct MovieDetailView: View {
     }
 
     private var actionButtons: some View {
-        HStack(spacing: 10) {
-            Button {
-                showRatingSheet = true
-            } label: {
-                HStack(spacing: 6) {
-                    if isWatched {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 13, weight: .bold))
-                    }
-                    Text(isWatched ? "Watched" : "Watched")
-                }
-                .font(.system(size: 15, weight: .semibold))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 13)
-                .background(isWatched ? .white : AppTheme.card)
-                .foregroundStyle(isWatched ? .black : .white)
-                .clipShape(
-                    RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                )
-            }
-
-            Button {
-                Task { await toggleWatchlist() }
-            } label: {
-                Group {
-                    if isWatchlistLoading {
-                        ProgressView()
-                            .tint(isInWatchlist ? .white : .black)
-                    } else {
-                        Text(isInWatchlist ? "In Watchlist" : "+ Watchlist")
-                    }
-                }
-                .font(.system(size: 15, weight: .semibold))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 13)
-                .background(isInWatchlist ? AppTheme.card : .white)
-                .foregroundStyle(isInWatchlist ? .white : .black)
-                .clipShape(
-                    RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium)
-                )
-            }
-            .disabled(isWatchlistLoading)
-        }
-        .padding(.bottom, 20)
+        MovieActionButtons(
+            isWatched: isWatched,
+            isInWatchlist: isInWatchlist,
+            isWatchlistLoading: isWatchlistLoading,
+            onWatched: { showRatingSheet = true },
+            onWatchlist: { Task { await toggleWatchlist() } }
+        )
     }
 
     // MARK: - Helpers
@@ -313,6 +297,55 @@ struct MovieDetailView: View {
             print("[MovieDetailView] watchlist toggle error: \(error)")
         }
         isWatchlistLoading = false
+    }
+}
+
+// MARK: - Action Buttons
+
+private struct MovieActionButtons: View {
+    let isWatched: Bool
+    let isInWatchlist: Bool
+    let isWatchlistLoading: Bool
+    let onWatched: () -> Void
+    let onWatchlist: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Button(action: onWatched) {
+                HStack(spacing: 6) {
+                    if isWatched {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                    Text("Watched")
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 13)
+                .background(isWatched ? .white : AppTheme.card)
+                .foregroundStyle(isWatched ? .black : .white)
+                .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
+            }
+
+            Button(action: onWatchlist) {
+                Group {
+                    if isWatchlistLoading {
+                        ProgressView()
+                            .tint(isInWatchlist ? .white : .black)
+                    } else {
+                        Text(isInWatchlist ? "In Watchlist" : "+ Watchlist")
+                    }
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 13)
+                .background(isInWatchlist ? AppTheme.card : .white)
+                .foregroundStyle(isInWatchlist ? .white : .black)
+                .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
+            }
+            .disabled(isWatchlistLoading)
+        }
+        .padding(.bottom, 20)
     }
 }
 
@@ -363,11 +396,5 @@ private struct CastSectionView: View {
         } else {
             AvatarView(size: 48)
         }
-    }
-}
-
-#Preview {
-    NavigationStack {
-        MovieDetailView(tmdbId: 550, title: "Fight Club")
     }
 }

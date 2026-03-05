@@ -2,17 +2,17 @@ import SwiftUI
 
 struct RateMoviesView: View {
     struct MovieToRate: Identifiable {
-        let id = UUID()
+        let id: Int // tmdbId
         let title: String
         let year: String
     }
 
     private let movies: [MovieToRate] = [
-        .init(title: "Dune", year: "2021"),
-        .init(title: "Parasite", year: "2019"),
-        .init(title: "Oppenheimer", year: "2023"),
-        .init(title: "Everything Everywhere", year: "2022"),
-        .init(title: "Mad Max: Fury Road", year: "2015"),
+        .init(id: 438_631, title: "Dune", year: "2021"),
+        .init(id: 496_243, title: "Parasite", year: "2019"),
+        .init(id: 872_585, title: "Oppenheimer", year: "2023"),
+        .init(id: 545_611, title: "Everything Everywhere", year: "2022"),
+        .init(id: 76341, title: "Mad Max: Fury Road", year: "2015"),
     ]
 
     @Environment(OnboardingState.self) var onboardingState
