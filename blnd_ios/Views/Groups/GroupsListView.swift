@@ -75,6 +75,8 @@ struct GroupsListView: View {
         do {
             let result = try await GroupsAPI.listGroups()
             groups = result.groups
+        } catch is CancellationError {
+            return
         } catch {
             print("[GroupsListView] Load failed: \(error)")
         }

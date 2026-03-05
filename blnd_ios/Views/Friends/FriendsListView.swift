@@ -178,6 +178,8 @@ struct FriendsListView: View {
             )
             friends = friendsData.friends
             pendingRequests = requestsData
+        } catch is CancellationError {
+            return
         } catch {
             print("[FriendsListView] Load failed: \(error)")
         }

@@ -35,34 +35,10 @@ final class APIClient {
         body: (any Encodable)? = nil,
         authenticated: Bool = false
     ) async throws -> T {
-        guard let url = URL(string: APIConfig.baseURL + endpoint) else {
-            throw APIError.invalidURL
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if authenticated, let token = KeychainManager.readString(key: "accessToken") {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        if let body {
-            request.httpBody = try encoder.encode(body)
-        }
-
-        let data: Data
-        let response: URLResponse
-        do {
-            (data, response) = try await URLSession.shared.data(for: request)
-        } catch {
-            throw APIError.networkError(error)
-        }
-
-        guard let http = response as? HTTPURLResponse else {
-            throw APIError.serverError(0)
-        }
-
+        let (http, data) = try await performRequest(
+            endpoint: endpoint, method: method,
+            body: body, authenticated: authenticated
+        )
         return try handleResponse(http: http, data: data)
     }
 
@@ -72,6 +48,19 @@ final class APIClient {
         body: (any Encodable)? = nil,
         authenticated: Bool = false
     ) async throws {
+        let (http, data) = try await performRequest(
+            endpoint: endpoint, method: method,
+            body: body, authenticated: authenticated
+        )
+        try handleVoidResponse(http: http, data: data)
+    }
+
+    private func performRequest(
+        endpoint: String,
+        method: String,
+        body: (any Encodable)?,
+        authenticated: Bool
+    ) async throws -> (HTTPURLResponse, Data) {
         guard let url = URL(string: APIConfig.baseURL + endpoint) else {
             throw APIError.invalidURL
         }
@@ -92,6 +81,10 @@ final class APIClient {
         let response: URLResponse
         do {
             (data, response) = try await URLSession.shared.data(for: request)
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch let urlError as URLError where urlError.code == .cancelled {
+            throw CancellationError()
         } catch {
             throw APIError.networkError(error)
         }
@@ -100,6 +93,10 @@ final class APIClient {
             throw APIError.serverError(0)
         }
 
+        return (http, data)
+    }
+
+    private func handleVoidResponse(http: HTTPURLResponse, data: Data) throws {
         switch http.statusCode {
         case 200 ..< 300:
             return

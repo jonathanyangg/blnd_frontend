@@ -276,6 +276,8 @@ struct ProfileView: View {
             let response = try await TrackingAPI.getWatchHistory(limit: 50)
             watchedMovies = response.results
             watchedTotal = response.total
+        } catch is CancellationError {
+            return
         } catch {
             print("[ProfileView] loadWatched error: \(error)")
         }
@@ -288,6 +290,8 @@ struct ProfileView: View {
             let response = try await TrackingAPI.getWatchlist(limit: 50)
             watchlistMovies = response.results
             watchlistTotal = response.total
+        } catch is CancellationError {
+            return
         } catch {
             print("[ProfileView] loadWatchlist error: \(error)")
         }
