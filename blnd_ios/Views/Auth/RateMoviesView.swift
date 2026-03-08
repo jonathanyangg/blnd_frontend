@@ -1,27 +1,18 @@
 import SwiftUI
 
 struct RateMoviesView: View {
-    struct MovieToRate: Identifiable {
-        let id: Int // tmdbId
-        let title: String
-        let year: String
-    }
-
-    private let movies: [MovieToRate] = [
-        .init(id: 438_631, title: "Dune", year: "2021"),
-        .init(id: 496_243, title: "Parasite", year: "2019"),
-        .init(id: 872_585, title: "Oppenheimer", year: "2023"),
-        .init(id: 545_611, title: "Everything Everywhere", year: "2022"),
-        .init(id: 76341, title: "Mad Max: Fury Road", year: "2015"),
-    ]
-
     @Environment(OnboardingState.self) var onboardingState
     @Binding var path: NavigationPath
+    @State private var movies: [MovieResponse] = []
     @State private var currentIndex = 0
     @State private var offset: CGSize = .zero
+    @State private var isLoading = true
 
-    private var currentMovie: MovieToRate {
-        movies[min(currentIndex, movies.count - 1)]
+    private let movieCount = 10
+
+    private var currentMovie: MovieResponse? {
+        guard currentIndex < movies.count else { return nil }
+        return movies[currentIndex]
     }
 
     var body: some View {
@@ -41,19 +32,41 @@ struct RateMoviesView: View {
                     .padding(.top, 4)
                     .padding(.bottom, 24)
 
-                // Card stack
-                ZStack {
-                    // Background card
-                    if currentIndex + 1 < movies.count {
-                        SwipeCard(title: movies[currentIndex + 1].title, year: movies[currentIndex + 1].year)
+                if isLoading {
+                    Spacer()
+                    ProgressView()
+                        .tint(.white)
+                        .frame(maxWidth: .infinity)
+                    Spacer()
+                } else if movies.isEmpty {
+                    Spacer()
+                    Text("No movies found")
+                        .foregroundStyle(AppTheme.textMuted)
+                        .frame(maxWidth: .infinity)
+                    Spacer()
+                } else {
+                    // Card stack
+                    ZStack {
+                        // Background card
+                        if currentIndex + 1 < movies.count {
+                            let next = movies[currentIndex + 1]
+                            SwipeCard(
+                                title: next.title,
+                                year: next.year.map { String($0) } ?? "",
+                                posterPath: next.posterPath
+                            )
                             .scaleEffect(0.9)
                             .rotationEffect(.degrees(-4))
                             .opacity(0.4)
-                    }
+                        }
 
-                    // Front card
-                    if currentIndex < movies.count {
-                        SwipeCard(title: currentMovie.title, year: currentMovie.year)
+                        // Front card
+                        if let movie = currentMovie {
+                            SwipeCard(
+                                title: movie.title,
+                                year: movie.year.map { String($0) } ?? "",
+                                posterPath: movie.posterPath
+                            )
                             .offset(offset)
                             .rotationEffect(.degrees(Double(offset.width) * 0.04))
                             .gesture(
@@ -71,55 +84,56 @@ struct RateMoviesView: View {
                                         }
                                     }
                             )
+                        }
                     }
+                    .frame(height: 280)
+                    .frame(maxWidth: .infinity)
+
+                    // Action buttons
+                    HStack {
+                        Button {
+                            swipe(liked: false)
+                        } label: {
+                            Image(systemName: "hand.thumbsdown.fill")
+                                .font(.system(size: 22))
+                                .frame(width: 52, height: 52)
+                                .background(AppTheme.card)
+                                .foregroundStyle(.white)
+                                .clipShape(Circle())
+                        }
+
+                        Spacer()
+
+                        GenrePill(label: "Haven't seen", isSmall: true) {
+                            skip()
+                        }
+
+                        Spacer()
+
+                        Button {
+                            swipe(liked: true)
+                        } label: {
+                            Image(systemName: "hand.thumbsup.fill")
+                                .font(.system(size: 22))
+                                .frame(width: 52, height: 52)
+                                .background(AppTheme.card)
+                                .foregroundStyle(.white)
+                                .clipShape(Circle())
+                        }
+                    }
+                    .padding(.top, 16)
+
+                    // Progress dots
+                    HStack(spacing: 8) {
+                        ForEach(0 ..< movies.count, id: \.self) { index in
+                            Circle()
+                                .fill(index <= currentIndex ? .white : AppTheme.border)
+                                .frame(width: 8, height: 8)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 20)
                 }
-                .frame(height: 280)
-                .frame(maxWidth: .infinity)
-
-                // Action buttons
-                HStack {
-                    Button {
-                        swipe(liked: false)
-                    } label: {
-                        Image(systemName: "hand.thumbsdown.fill")
-                            .font(.system(size: 22))
-                            .frame(width: 52, height: 52)
-                            .background(AppTheme.card)
-                            .foregroundStyle(.white)
-                            .clipShape(Circle())
-                    }
-
-                    Spacer()
-
-                    GenrePill(label: "Haven't seen", isSmall: true) {
-                        skip()
-                    }
-
-                    Spacer()
-
-                    Button {
-                        swipe(liked: true)
-                    } label: {
-                        Image(systemName: "hand.thumbsup.fill")
-                            .font(.system(size: 22))
-                            .frame(width: 52, height: 52)
-                            .background(AppTheme.card)
-                            .foregroundStyle(.white)
-                            .clipShape(Circle())
-                    }
-                }
-                .padding(.top, 16)
-
-                // Progress dots
-                HStack(spacing: 8) {
-                    ForEach(0 ..< movies.count, id: \.self) { index in
-                        Circle()
-                            .fill(index <= currentIndex ? .white : AppTheme.border)
-                            .frame(width: 8, height: 8)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.top, 20)
 
                 Spacer()
             }
@@ -132,11 +146,27 @@ struct RateMoviesView: View {
                 BackButton()
             }
         }
+        .task { await fetchMovies() }
+    }
+
+    private func fetchMovies() async {
+        let genres = Array(onboardingState.selectedGenres)
+        guard !genres.isEmpty else {
+            isLoading = false
+            return
+        }
+        do {
+            let result = try await MoviesAPI.discover(genres: genres)
+            movies = Array(result.results.prefix(movieCount))
+        } catch {
+            print("[RateMoviesView] Discover failed: \(error)")
+        }
+        isLoading = false
     }
 
     private func swipe(liked: Bool) {
-        let movie = currentMovie
-        onboardingState.movieRatings[movie.id] = liked
+        guard let movie = currentMovie else { return }
+        onboardingState.movieRatings[movie.tmdbId] = liked
         withAnimation(.easeOut(duration: 0.3)) {
             offset = CGSize(width: liked ? 300 : -300, height: 0)
         }
@@ -164,13 +194,34 @@ struct RateMoviesView: View {
 private struct SwipeCard: View {
     let title: String
     let year: String
+    let posterPath: String?
+
+    private var posterURL: URL? {
+        guard let path = posterPath else { return nil }
+        return URL(string: "https://image.tmdb.org/t/p/w342\(path)")
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(AppTheme.posterGradient)
+            if let url = posterURL {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case let .success(image):
+                        image.resizable().scaledToFill()
+                    default:
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(AppTheme.posterGradient)
+                    }
+                }
                 .frame(width: 190, height: 280)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
                 .shadow(color: .black.opacity(0.5), radius: 30, y: 20)
+            } else {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(AppTheme.posterGradient)
+                    .frame(width: 190, height: 280)
+                    .shadow(color: .black.opacity(0.5), radius: 30, y: 20)
+            }
 
             VStack(alignment: .leading) {
                 Text(title)

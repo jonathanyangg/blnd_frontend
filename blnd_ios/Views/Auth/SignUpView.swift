@@ -22,6 +22,9 @@ struct SignUpView: View {
                     @Bindable var state = onboardingState
 
                     AppTextField(placeholder: "Name", text: $state.name)
+                    AppTextField(placeholder: "Username", text: $state.username)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
                     AppTextField(placeholder: "Email", text: $state.email)
                         .textContentType(.emailAddress)
                         .keyboardType(.emailAddress)
@@ -47,7 +50,8 @@ struct SignUpView: View {
                     AppButton(
                         label: "Sign Up",
                         isLoading: authState.isLoading,
-                        isDisabled: state.name.isEmpty || state.email.isEmpty || state.password.isEmpty
+                        isDisabled: state.name.isEmpty || state.username.isEmpty
+                            || state.email.isEmpty || state.password.isEmpty
                     ) {
                         guard isValidEmail(state.email) else {
                             emailError = "Please enter a valid email address"
@@ -58,7 +62,7 @@ struct SignUpView: View {
                             await authState.signup(
                                 email: state.email,
                                 password: state.password,
-                                username: state.email.components(separatedBy: "@").first ?? state.email,
+                                username: state.username,
                                 displayName: state.name
                             )
                             if authState.error == nil {

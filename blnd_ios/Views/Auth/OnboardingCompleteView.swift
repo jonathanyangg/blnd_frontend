@@ -80,9 +80,9 @@ struct OnboardingCompleteView: View {
             )
         }
 
-        // Submit movie ratings (liked → 4.5, disliked → 1.5)
+        // Submit movie ratings (liked → 4.0, disliked → 2.0)
         for (tmdbId, liked) in onboardingState.movieRatings {
-            let rating: Double = liked ? 4.5 : 1.5
+            let rating: Double = liked ? 4.0 : 2.0
             _ = try? await TrackingAPI.trackMovie(
                 tmdbId: tmdbId,
                 rating: rating

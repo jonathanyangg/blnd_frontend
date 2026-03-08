@@ -2,6 +2,15 @@ import Foundation
 
 /// Movie endpoints: search, trending, detail
 enum MoviesAPI {
+    /// GET /movies/discover — top movies by genre (no auth required)
+    static func discover(genres: [String], page: Int = 1) async throws -> MovieSearchResult {
+        let joined = genres.joined(separator: ",")
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        return try await APIClient.shared.request(
+            endpoint: "/movies/discover?genres=\(joined)&page=\(page)"
+        )
+    }
+
     static func search(query: String, page: Int = 1) async throws -> MovieSearchResult {
         let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
         return try await APIClient.shared.request(

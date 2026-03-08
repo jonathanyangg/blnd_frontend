@@ -36,13 +36,13 @@ blnd_frontend/
 ├── Networking/
 │   ├── APIClient.swift         done singleton, request(), requestVoid(), Bearer token, notFound error
 │   ├── AuthAPI.swift           done signup(), login(), me(), updateProfile(), searchUsers()
-│   ├── MoviesAPI.swift         done search(), trending(), getMovie() + RecommendationsAPI
+│   ├── MoviesAPI.swift         done discover(), search(), trending(), getMovie() + RecommendationsAPI
 │   ├── TrackingAPI.swift       done trackMovie, getWatchHistory, getWatchedMovie, deleteWatchedMovie, addToWatchlist, removeFromWatchlist, getWatchlist
 │   ├── FriendsAPI.swift        done listFriends, sendRequest, getPendingRequests, acceptRequest, rejectRequest, removeFriend
 │   └── GroupsAPI.swift         done listGroups, createGroup, getGroup, updateGroup, deleteGroup, addMember, kickMember, leaveGroup, getRecommendations, getWatchlist, addToWatchlist, removeFromWatchlist
 ├── State/
 │   ├── AuthState.swift         done @Observable, signup/login/logout/fetchCurrentUser
-│   └── OnboardingState.swift   caches name/email/password/genres/ratings (tmdbId→liked) during onboarding
+│   └── OnboardingState.swift   caches name/username/email/password/genres/ratings (tmdbId→liked) during onboarding
 ├── Theme/
 │   └── AppTheme.swift
 ├── Views/
@@ -51,10 +51,10 @@ blnd_frontend/
 │   ├── Auth/
 │   │   ├── WelcomeView.swift
 │   │   ├── OnboardingView.swift
-│   │   ├── SignUpView.swift    step 3: collects credentials, calls signup API, has email validation
+│   │   ├── SignUpView.swift    step 3: collects name/username/email/password, calls signup API, has email validation
 │   │   ├── LoginView.swift     done wired to authState.login()
 │   │   ├── PickGenresView.swift  done genre selection cached in OnboardingState
-│   │   ├── RateMoviesView.swift  done swipe cards with real TMDB IDs, ratings cached in OnboardingState
+│   │   ├── RateMoviesView.swift  done fetches genre-based movies from discover API, swipe cards with posters, ratings cached in OnboardingState
 │   │   └── OnboardingCompleteView.swift  done submits genres + ratings to API, then sets authenticated
 │   ├── Home/
 │   │   ├── HomeView.swift      done FYP + Trending tabs, match % badges on trending, pull-to-refresh
@@ -163,13 +163,16 @@ blnd_frontend/
 32. GroupDetailView: edit group name (PATCH /groups/{id}, owner only), add member via friends picker sheet
 33. WatchlistPickerSheet: Spotify-style "Add to Watchlist" — personal + all groups, checkbox toggles, batch save
 34. GroupsAPI: updateGroup() for PATCH /groups/{id}, TrackingAPI: deleteWatchedMovie()
+35. Onboarding signup: username field added to SignUpView + OnboardingState, backend validates uniqueness + format (3-30 chars, a-z0-9._)
+36. Genre-based movie discovery: backend GET /movies/discover?genres= (TMDB discover API, no auth), RateMoviesView fetches top 10 movies from selected genres with real poster images
+37. Onboarding ratings: liked → 4.0, disliked → 2.0 (haven't seen = skip)
 
 ## Next Steps
 
-35. Profile edit UI (display name, taste bio — backend already wired)
-36. Re-rate a movie (PATCH /tracking/{tmdb_id})
-37. Letterboxd import (POST /import/letterboxd — file upload in settings)
-38. Polish: empty states, error handling
+38. Profile edit UI (display name, taste bio — backend already wired)
+39. Re-rate a movie (PATCH /tracking/{tmdb_id})
+40. Letterboxd import (POST /import/letterboxd — file upload in settings)
+41. Polish: empty states, error handling
 
 ## Linting
 

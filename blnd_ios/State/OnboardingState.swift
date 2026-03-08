@@ -4,6 +4,7 @@ import Foundation
 @Observable
 class OnboardingState {
     var name = ""
+    var username = ""
     var email = ""
     var password = ""
 
@@ -12,6 +13,7 @@ class OnboardingState {
 
     func reset() {
         name = ""
+        username = ""
         email = ""
         password = ""
         selectedGenres = []
