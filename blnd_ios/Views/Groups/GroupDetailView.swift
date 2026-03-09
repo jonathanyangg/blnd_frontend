@@ -291,16 +291,19 @@ struct GroupDetailView: View {
         GroupMembersSheet(
             groupId: groupId,
             group: $group,
-            isOwner: group?.createdBy == currentUserId
+            isOwner: group?.createdBy == currentUserId,
+            onGroupDeleted: { dismiss() }
         )
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .presentationBackground(AppTheme.background)
     }
+}
 
-    // MARK: - Data Loading
+// MARK: - Data Loading
 
-    private func loadAll(forceRefresh: Bool = false) async {
+extension GroupDetailView {
+    func loadAll(forceRefresh: Bool = false) async {
         guard forceRefresh || group == nil else { return }
         do {
             async let groupResult = GroupsAPI.getGroup(
@@ -325,7 +328,7 @@ struct GroupDetailView: View {
         isLoading = false
     }
 
-    private func saveGroupName() async {
+    func saveGroupName() async {
         let trimmed = editName.trimmingCharacters(
             in: .whitespaces
         )

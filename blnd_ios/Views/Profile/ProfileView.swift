@@ -102,11 +102,11 @@ struct ProfileView: View {
         HStack {
             statItem(value: "\(watchedTotal)", label: "Watched")
             statItem(value: "\(watchlistTotal)", label: "Watchlist")
-            Button { tabState.selectedTab = 1 } label: {
+            Button { tabState.switchTab(1) } label: {
                 statItem(value: "\(friendsCount)", label: "Friends")
             }
             .buttonStyle(.plain)
-            Button { tabState.selectedTab = 2 } label: {
+            Button { tabState.switchTab(2) } label: {
                 statItem(value: "\(groupsCount)", label: "Blends")
             }
             .buttonStyle(.plain)

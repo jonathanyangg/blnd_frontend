@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct GroupsListView: View {
+    @Environment(TabState.self) private var tabState
     @State private var groups: [GroupResponse] = []
     @State private var isLoading = true
     @State private var showCreateGroup = false
@@ -69,6 +70,7 @@ struct GroupsListView: View {
                 }
             }
         }
+        .id(tabState.navigationReset)
     }
 
     private func loadGroups() async {

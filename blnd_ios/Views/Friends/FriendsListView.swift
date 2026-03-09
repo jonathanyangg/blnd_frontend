@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct FriendsListView: View {
+    @Environment(TabState.self) private var tabState
     @State private var friends: [FriendResponse] = []
     @State private var pendingRequests: PendingRequestsResponse?
     @State private var isLoading = true
@@ -63,6 +64,7 @@ struct FriendsListView: View {
                 }
             }
         }
+        .id(tabState.navigationReset)
     }
 
     private var incomingCount: Int {
@@ -392,8 +394,4 @@ private struct OutgoingRequestRow: View {
         .padding(.vertical, 14)
         .padding(.horizontal, 24)
     }
-}
-
-#Preview {
-    FriendsListView()
 }

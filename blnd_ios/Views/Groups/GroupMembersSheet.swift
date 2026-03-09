@@ -4,11 +4,16 @@ struct GroupMembersSheet: View {
     let groupId: Int
     @Binding var group: GroupDetailResponse?
     let isOwner: Bool
+    var onGroupDeleted: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
     @State private var showAddMember = false
     @State private var removingId: String?
     @State private var confirmRemoveId: String?
+    @State private var showLeaveConfirm = false
+    @State private var showDeleteConfirm = false
+    @State private var isLeaving = false
+    @State private var isDeleting = false
 
     private var currentUserId: String {
         KeychainManager.readString(key: "userId") ?? ""
@@ -24,6 +29,9 @@ struct GroupMembersSheet: View {
                             memberRow(member, group: group)
                         }
                     }
+
+                    Spacer().frame(height: 24)
+                    actionButtons
                 }
             }
         }
@@ -48,6 +56,28 @@ struct GroupMembersSheet: View {
                     Task { await removeMember(uid) }
                 }
             }
+        }
+        .confirmationDialog(
+            "Leave this blend?",
+            isPresented: $showLeaveConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Leave", role: .destructive) {
+                Task { await leaveGroup() }
+            }
+        } message: {
+            Text("You'll need to be re-invited to rejoin.")
+        }
+        .confirmationDialog(
+            "Delete this blend?",
+            isPresented: $showDeleteConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                Task { await deleteGroup() }
+            }
+        } message: {
+            Text("This will permanently delete the blend and all its data.")
         }
     }
 
@@ -119,6 +149,48 @@ struct GroupMembersSheet: View {
         .padding(.vertical, 10)
     }
 
+    private var actionButtons: some View {
+        VStack(spacing: 10) {
+            Button {
+                showLeaveConfirm = true
+            } label: {
+                HStack {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .font(.system(size: 14))
+                    Text("Leave Blend")
+                        .font(.system(size: 15, weight: .medium))
+                }
+                .foregroundStyle(.red)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 13)
+                .background(AppTheme.card)
+                .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
+            }
+            .disabled(isLeaving)
+
+            if isOwner {
+                Button {
+                    showDeleteConfirm = true
+                } label: {
+                    HStack {
+                        Image(systemName: "trash")
+                            .font(.system(size: 14))
+                        Text("Delete Blend")
+                            .font(.system(size: 15, weight: .medium))
+                    }
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 13)
+                    .background(.red.opacity(0.15))
+                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusMedium))
+                }
+                .disabled(isDeleting)
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 32)
+    }
+
     private func removeMember(_ userId: String) async {
         removingId = userId
         do {
@@ -134,5 +206,29 @@ struct GroupMembersSheet: View {
             print("[GroupMembersSheet] Remove failed: \(error)")
         }
         removingId = nil
+    }
+
+    private func leaveGroup() async {
+        isLeaving = true
+        do {
+            try await GroupsAPI.leaveGroup(groupId: groupId)
+            dismiss()
+            onGroupDeleted?()
+        } catch {
+            print("[GroupMembersSheet] Leave failed: \(error)")
+        }
+        isLeaving = false
+    }
+
+    private func deleteGroup() async {
+        isDeleting = true
+        do {
+            try await GroupsAPI.deleteGroup(groupId: groupId)
+            dismiss()
+            onGroupDeleted?()
+        } catch {
+            print("[GroupMembersSheet] Delete failed: \(error)")
+        }
+        isDeleting = false
     }
 }
