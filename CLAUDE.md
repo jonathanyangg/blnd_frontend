@@ -199,10 +199,10 @@ blnd_ios/blnd_ios/
 44. AvatarView: accepts optional url param, shows actual avatar via AsyncImage everywhere (ProfileView, FriendProfileView, FriendsListView, AddFriendView, FriendsWhoWatchedSection, AddGroupMemberSheet)
 45. CastSectionView: fixed ForEach nil ID crash by using array index
 46. Settings toggle style: Apple default with green tint (.tint(.green))
+47. Re-rate movie: UpdateTrackingRequest model, TrackingAPI.updateRating() via PATCH /tracking/{tmdb_id}, RateMovieSheet pre-fills existing rating and uses PATCH for updates vs POST for new, button shows "Update Rating"
 
 ## Next Steps
 
-47. Re-rate a movie (PATCH /tracking/{tmdb_id})
 48. Letterboxd import (POST /import/letterboxd — file upload in settings)
 49. Add avatar_url to backend GroupMemberResponse so group member avatars show
 50. Profile edit UI (taste bio — backend already wired)
