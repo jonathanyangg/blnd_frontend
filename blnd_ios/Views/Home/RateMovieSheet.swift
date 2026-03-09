@@ -9,7 +9,6 @@ struct RateMovieSheet: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var rating: Double = 4
-    @State private var note = ""
     @State private var isSaving = false
     @State private var saveError: String?
 
@@ -37,16 +36,6 @@ struct RateMovieSheet: View {
             // Star rating
             StarRatingInput(rating: $rating)
                 .padding(.bottom, 16)
-
-            // Note field
-            TextField("Add a note...", text: $note, axis: .vertical)
-                .font(.system(size: 14))
-                .foregroundStyle(.white)
-                .padding(14)
-                .background(Color(hex: 0x111111))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .lineLimit(3 ... 5)
-                .padding(.bottom, 8)
 
             if let saveError {
                 Text(saveError)
@@ -89,7 +78,7 @@ struct RateMovieSheet: View {
             _ = try await TrackingAPI.trackMovie(
                 tmdbId: tmdbId,
                 rating: rating,
-                review: note.isEmpty ? nil : note
+                review: nil
             )
             onSaved?(rating)
             dismiss()

@@ -20,14 +20,18 @@ struct LoginRequest: Encodable {
 }
 
 struct UpdateProfileRequest: Encodable {
+    let username: String?
     let displayName: String?
     let tasteBio: String?
     let favoriteGenres: [String]?
+    let avatarUrl: String?
 
     enum CodingKeys: String, CodingKey {
+        case username
         case displayName = "display_name"
         case tasteBio = "taste_bio"
         case favoriteGenres = "favorite_genres"
+        case avatarUrl = "avatar_url"
     }
 }
 

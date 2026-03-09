@@ -12,7 +12,7 @@ struct CastSectionView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(cast) { member in
+                    ForEach(Array(cast.enumerated()), id: \.offset) { _, member in
                         VStack(spacing: 4) {
                             castAvatar(member)
                             Text(member.name)

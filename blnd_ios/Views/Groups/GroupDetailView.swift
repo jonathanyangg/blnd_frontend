@@ -23,6 +23,7 @@ struct GroupDetailView: View {
         content
             .background(AppTheme.background)
             .navigationBarBackButtonHidden()
+            .swipeBackGesture()
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     BackButton()

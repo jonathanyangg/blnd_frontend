@@ -50,14 +50,18 @@ enum AuthAPI {
 
     /// PATCH /auth/profile — update profile fields
     static func updateProfile(
+        username: String? = nil,
         displayName: String? = nil,
         tasteBio: String? = nil,
-        favoriteGenres: [String]? = nil
+        favoriteGenres: [String]? = nil,
+        avatarUrl: String? = nil
     ) async throws -> UserResponse {
         let body = UpdateProfileRequest(
+            username: username,
             displayName: displayName,
             tasteBio: tasteBio,
-            favoriteGenres: favoriteGenres
+            favoriteGenres: favoriteGenres,
+            avatarUrl: avatarUrl
         )
         return try await APIClient.shared.request(
             endpoint: "/auth/profile",

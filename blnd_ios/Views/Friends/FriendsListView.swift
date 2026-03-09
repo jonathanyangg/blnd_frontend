@@ -275,7 +275,7 @@ private struct FriendRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AvatarView()
+            AvatarView(url: friend.avatarUrl)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(friend.displayName ?? friend.username)
@@ -303,7 +303,7 @@ private struct IncomingRequestRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AvatarView()
+            AvatarView(url: request.requester.avatarUrl)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(
@@ -365,7 +365,7 @@ private struct OutgoingRequestRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AvatarView()
+            AvatarView(url: request.addressee.avatarUrl)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(

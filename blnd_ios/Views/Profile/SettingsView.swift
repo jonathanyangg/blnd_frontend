@@ -1,39 +1,37 @@
 import SwiftUI
 
+private enum SettingsDestination: Hashable {
+    case account, notifications, privacy, about
+}
+
 struct SettingsView: View {
     @Environment(AuthState.self) var authState
-    private let settingsItems = ["Account", "Notifications", "Privacy", "About"]
+    @State private var destination: SettingsDestination?
 
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 16) {
-                    // Settings group
                     VStack(spacing: 0) {
-                        ForEach(Array(settingsItems.enumerated()), id: \.element) { index, item in
-                            Button {} label: {
-                                HStack {
-                                    Text(item)
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(.white)
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundStyle(AppTheme.textDim)
-                                }
-                                .padding(16)
-                            }
-
-                            if index < settingsItems.count - 1 {
-                                Divider()
-                                    .background(AppTheme.cardSecondary)
-                            }
+                        settingsRow("Account", icon: "person") {
+                            destination = .account
+                        }
+                        Divider().background(AppTheme.cardSecondary)
+                        settingsRow("Notifications", icon: "bell") {
+                            destination = .notifications
+                        }
+                        Divider().background(AppTheme.cardSecondary)
+                        settingsRow("Privacy", icon: "lock") {
+                            destination = .privacy
+                        }
+                        Divider().background(AppTheme.cardSecondary)
+                        settingsRow("About", icon: "info.circle") {
+                            destination = .about
                         }
                     }
                     .background(AppTheme.card)
                     .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadiusLarge))
 
-                    // Log Out
                     Button { authState.logout() } label: {
                         Text("Log Out")
                             .font(.system(size: 16, weight: .medium))
@@ -50,6 +48,7 @@ struct SettingsView: View {
         }
         .background(AppTheme.background)
         .navigationBarBackButtonHidden()
+        .swipeBackGesture()
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 BackButton()
@@ -60,11 +59,47 @@ struct SettingsView: View {
                     .foregroundStyle(.white)
             }
         }
+        .navigationDestination(item: $destination) { dest in
+            switch dest {
+            case .account:
+                AccountSettingsView()
+            case .notifications:
+                NotificationsSettingsView()
+            case .privacy:
+                PrivacySettingsView()
+            case .about:
+                AboutSettingsView()
+            }
+        }
+    }
+
+    private func settingsRow(
+        _ title: String,
+        icon: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 15))
+                    .foregroundStyle(AppTheme.textMuted)
+                    .frame(width: 20)
+                Text(title)
+                    .font(.system(size: 16))
+                    .foregroundStyle(.white)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(AppTheme.textDim)
+            }
+            .padding(16)
+        }
     }
 }
 
 #Preview {
     NavigationStack {
         SettingsView()
+            .environment(AuthState())
     }
 }

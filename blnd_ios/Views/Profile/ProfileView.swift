@@ -7,6 +7,7 @@ private enum ProfileTab: String, CaseIterable {
 
 struct ProfileView: View {
     @Environment(AuthState.self) private var authState
+    @Environment(TabState.self) private var tabState
     @State private var showSettings = false
     @State private var selectedTab: ProfileTab = .watched
     @Namespace private var profileTabNamespace
@@ -81,7 +82,7 @@ struct ProfileView: View {
 
     private var userInfo: some View {
         VStack(spacing: 0) {
-            AvatarView(size: 80)
+            AvatarView(url: authState.currentUser?.avatarUrl, size: 80)
                 .padding(.bottom, 12)
 
             Text(authState.currentUser?.displayName ?? authState.currentUser?.username ?? "User")
@@ -98,24 +99,17 @@ struct ProfileView: View {
     // MARK: - Stats
 
     private var statsRow: some View {
-        let stats: [(value: String, label: String)] = [
-            ("\(watchedTotal)", "Watched"),
-            ("\(watchlistTotal)", "Watchlist"),
-            ("\(friendsCount)", "Friends"),
-            ("\(groupsCount)", "Groups"),
-        ]
-        return HStack {
-            ForEach(stats, id: \.label) { stat in
-                VStack(spacing: 2) {
-                    Text(stat.value)
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(.white)
-                    Text(stat.label)
-                        .font(.system(size: 12))
-                        .foregroundStyle(AppTheme.textMuted)
-                }
-                .frame(maxWidth: .infinity)
+        HStack {
+            statItem(value: "\(watchedTotal)", label: "Watched")
+            statItem(value: "\(watchlistTotal)", label: "Watchlist")
+            Button { tabState.selectedTab = 1 } label: {
+                statItem(value: "\(friendsCount)", label: "Friends")
             }
+            .buttonStyle(.plain)
+            Button { tabState.selectedTab = 2 } label: {
+                statItem(value: "\(groupsCount)", label: "Groups")
+            }
+            .buttonStyle(.plain)
         }
         .padding(.vertical, 16)
         .overlay(alignment: .top) {
@@ -126,6 +120,18 @@ struct ProfileView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 20)
+    }
+
+    private func statItem(value: String, label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.system(size: 20, weight: .bold))
+                .foregroundStyle(.white)
+            Text(label)
+                .font(.system(size: 12))
+                .foregroundStyle(AppTheme.textMuted)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Tab Picker
@@ -322,4 +328,5 @@ struct ProfileView: View {
 #Preview {
     ProfileView()
         .environment(AuthState())
+        .environment(TabState())
 }

@@ -51,6 +51,7 @@ struct MovieDetailView: View {
         }
         .background(AppTheme.background)
         .navigationBarBackButtonHidden()
+        .swipeBackGesture()
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 BackButton()

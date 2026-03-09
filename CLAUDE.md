@@ -7,13 +7,15 @@ SwiftUI iOS app for blnd — movie taste syncing with AI recommendations.
 - Swift / SwiftUI, iOS 17+
 - Zero third-party dependencies
 - `@Observable` for state, `async/await` for networking
-- Talks to FastAPI backend (not Supabase directly)
+- Talks to FastAPI backend for API, Supabase Storage for avatar uploads
 
 ## Architecture
 
 - **MVVM-ish**: Views own local state, shared state via `@Observable` + `.environment()`
 - **Networking**: `APIClient` singleton → domain-specific static API enums (`AuthAPI`, `MoviesAPI`, `FriendsAPI`, `GroupsAPI`, etc.)
-- **Auth**: JWT stored in Keychain, injected as Bearer token by `APIClient`
+- **Auth**: JWT stored in Keychain, injected as Bearer token by `APIClient` and Supabase Storage uploads
+- **Avatars**: Upload JPEG to Supabase Storage (`avatars/{user_id}/avatar.jpg`), get public URL, save via `PATCH /auth/profile { avatar_url }`
+- **Tab navigation**: `TabState` (@Observable) injected from `MainTabView`, allows any child view to switch tabs
 - **Onboarding nav**: `WelcomeView` owns a `NavigationStack(path:)` with `AuthRoute` enum; child views take `@Binding var path`. Signup API call happens on SignUpView (step 3), credentials collected last so duplicate email errors show immediately.
 - **Onboarding state**: `OnboardingState` caches credentials + genres + ratings so back-navigation preserves selections. Genres submitted via `PATCH /auth/profile`, ratings via `POST /tracking/` per movie — both fire on OnboardingCompleteView "Let's go" tap.
 - **Models**: Codable structs matching backend Pydantic schemas (snake_case → camelCase via CodingKeys)
@@ -26,22 +28,25 @@ blnd_frontend/
 │   └── blndApp.swift          (BlndApp entry point, injects AuthState + OnboardingState into environment)
 ├── Config/
 │   ├── APIConfig.swift         done base URL constant
+│   ├── SupabaseConfig.swift    done Supabase project URL + storage bucket name
 │   └── KeychainManager.swift   done save/read/delete tokens via Security framework
 ├── Models/
-│   ├── AuthModels.swift        done SignupRequest, LoginRequest, UpdateProfileRequest, LoginResponse, UserResponse, UserSearchResult, UserSearchResponse
+│   ├── AuthModels.swift        done SignupRequest, LoginRequest, UpdateProfileRequest (incl username, avatarUrl), LoginResponse, UserResponse, UserSearchResult, UserSearchResponse
 │   ├── MovieModels.swift       done Genre, CastMember, MovieResponse (incl matchScore, trailerUrl), MovieSearchResult, RecommendedMovieResponse, RecommendationsResponse
 │   ├── TrackingModels.swift    done TrackMovieRequest, WatchedMovieResponse, WatchlistMovieResponse, etc.
 │   ├── FriendModels.swift      done SendFriendRequestRequest, FriendResponse, FriendRequestResponse, FriendListResponse, PendingRequestsResponse
 │   └── GroupModels.swift       done CreateGroupRequest, AddMemberRequest, UpdateGroupRequest, GroupResponse, GroupDetailResponse, GroupMemberResponse, GroupRecMovieResponse, etc.
 ├── Networking/
 │   ├── APIClient.swift         done singleton, request(), requestVoid(), Bearer token, notFound error
-│   ├── AuthAPI.swift           done signup(), login(), me(), updateProfile(), searchUsers()
+│   ├── AuthAPI.swift           done signup(), login(), me(), updateProfile(username/displayName/tasteBio/favoriteGenres/avatarUrl), searchUsers()
+│   ├── AvatarUploader.swift    done uploads UIImage JPEG to Supabase Storage, returns public URL
 │   ├── MoviesAPI.swift         done discover(), search(), trending(), getMovie() + RecommendationsAPI
 │   ├── TrackingAPI.swift       done trackMovie, getWatchHistory, getWatchedMovie, deleteWatchedMovie, addToWatchlist, removeFromWatchlist, getWatchlist
 │   ├── FriendsAPI.swift        done listFriends, sendRequest, getPendingRequests, acceptRequest, rejectRequest, removeFriend
 │   └── GroupsAPI.swift         done listGroups, createGroup, getGroup, updateGroup, deleteGroup, addMember, kickMember, leaveGroup, getRecommendations, getWatchlist, addToWatchlist, removeFromWatchlist
 ├── State/
 │   ├── AuthState.swift         done @Observable, signup/login/logout/fetchCurrentUser
+│   ├── TabState.swift          done @Observable, selectedTab — shared between MainTabView and child views
 │   └── OnboardingState.swift   caches name/username/email/password/genres/ratings (tmdbId→liked) during onboarding
 ├── Theme/
 │   └── AppTheme.swift
@@ -70,8 +75,12 @@ blnd_frontend/
 │   │   ├── GroupDetailView.swift    done blend picks, group watchlist, members list, add member (friends picker sheet), edit group name
 │   │   └── CreateGroupView.swift    done creates group via API, loading/error states
 │   ├── Profile/
-│   │   ├── ProfileView.swift   done real user data, watched/watchlist tabs with poster grids
-│   │   ├── SettingsView.swift  done logout wired
+│   │   ├── ProfileView.swift   done real user data, watched/watchlist tabs with poster grids, tappable friends/groups stats
+│   │   ├── SettingsView.swift  done navigates to Account/Notifications/Privacy/About, logout
+│   │   ├── AccountSettingsView.swift    done edit display name, username, avatar upload/remove via Supabase
+│   │   ├── NotificationsSettingsView.swift  done placeholder toggles (coming soon)
+│   │   ├── PrivacySettingsView.swift    done placeholder toggles (coming soon)
+│   │   ├── AboutSettingsView.swift      done app version, branding
 │   │   └── Components/
 │   └── Shared/
 │       ├── AppButton.swift     (isLoading prop with spinner)
@@ -82,6 +91,7 @@ blnd_frontend/
 │       ├── TasteMatchBadge.swift
 │       ├── StarRatingInput.swift   done interactive half-star rating + StarRatingDisplay read-only
 │       ├── WatchlistPickerSheet.swift  done Spotify-style add to personal/group watchlists
+│       ├── SwipeBackGesture.swift     done edge-swipe dismiss modifier for views with hidden back button
 │       └── OnboardingProgressBar.swift
 └── Extensions/
 ```
@@ -118,13 +128,13 @@ blnd_frontend/
 - **Typography-driven**: Big bold titles, whitespace, thin dividers
 - **4 tabs**: Home (with search), Friends, Groups, Profile
 
-## Screens (16 total)
+## Screens (20 total)
 
 - **Onboarding (4)**: Pick Genres → Rate Movies (swipe cards) → Create Account (signup API call) → You're In
 - **Home (3)**: Home Feed, Search Results, Movie Detail
 - **Friends (3)**: Friends List, Friend Profile, Add Friend
 - **Groups (3)**: Groups List, Group Detail, Create Group
-- **Profile (2)**: Profile, Settings
+- **Profile (6)**: Profile, Settings, Account (edit name/username/avatar), Notifications, Privacy, About
 - **Shared (1)**: Rate Movie bottom sheet
 
 ## Completed
@@ -166,13 +176,19 @@ blnd_frontend/
 35. Onboarding signup: username field added to SignUpView + OnboardingState, backend validates uniqueness + format (3-30 chars, a-z0-9._)
 36. Genre-based movie discovery: backend GET /movies/discover?genres= (TMDB discover API, no auth), RateMoviesView fetches top 10 movies from selected genres with real poster images
 37. Onboarding ratings: liked → 4.0, disliked → 2.0 (haven't seen = skip)
+38. Swipe-back gesture: SwipeBackGestureModifier re-enables edge swipe on views with hidden back button (MovieDetail, FriendProfile, Settings, GroupDetail)
+39. Tab navigation from profile: TabState @Observable, ProfileView friends/groups stats tap switches tab
+40. Settings sub-pages: SettingsView navigates to Account, Notifications, Privacy, About
+41. Account settings: edit display name + username via PATCH /auth/profile, avatar upload to Supabase Storage + remove
+42. Avatar upload pipeline: PhotosPicker → UIImage → JPEG compress → Supabase Storage PUT → public URL → PATCH /auth/profile
+43. RateMovieSheet: removed note/review field, ratings only
 
 ## Next Steps
 
-38. Profile edit UI (display name, taste bio — backend already wired)
-39. Re-rate a movie (PATCH /tracking/{tmdb_id})
-40. Letterboxd import (POST /import/letterboxd — file upload in settings)
-41. Polish: empty states, error handling
+44. Re-rate a movie (PATCH /tracking/{tmdb_id})
+45. Letterboxd import (POST /import/letterboxd — file upload in settings)
+46. Polish: empty states, error handling
+47. AvatarView: show actual avatar from avatarUrl (currently gradient placeholder everywhere)
 
 ## Linting
 
@@ -188,4 +204,4 @@ blnd_frontend/
 
 ## Last Updated
 
-2026-03-07
+2026-03-09

@@ -116,7 +116,7 @@ struct AddGroupMemberSheet: View {
 
     private func friendRow(_ friend: FriendResponse) -> some View {
         HStack(spacing: 12) {
-            AvatarView(size: 44)
+            AvatarView(url: friend.avatarUrl, size: 44)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(friend.displayName ?? friend.username)

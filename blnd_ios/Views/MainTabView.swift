@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct MainTabView: View {
-    @State private var selectedTab = 0
+    @State private var tabState = TabState()
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $tabState.selectedTab) {
             HomeView()
                 .tabItem {
                     Image(systemName: "house")
@@ -34,6 +34,7 @@ struct MainTabView: View {
                 .tag(3)
         }
         .tint(.white)
+        .environment(tabState)
     }
 }
 

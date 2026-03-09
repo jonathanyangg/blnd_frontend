@@ -12,7 +12,7 @@ struct FriendProfileView: View {
             VStack(spacing: 0) {
                 // Profile header
                 VStack(spacing: 0) {
-                    AvatarView(size: 80)
+                    AvatarView(url: friend.avatarUrl, size: 80)
                         .padding(.bottom, 12)
 
                     Text(friend.displayName ?? friend.username)
@@ -55,6 +55,7 @@ struct FriendProfileView: View {
         }
         .background(AppTheme.background)
         .navigationBarBackButtonHidden()
+        .swipeBackGesture()
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 BackButton()

@@ -46,7 +46,7 @@ struct FriendWatchedRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            AvatarView(size: 32)
+            AvatarView(url: friend.avatarUrl, size: 32)
             VStack(alignment: .leading, spacing: 2) {
                 Text(friend.displayName ?? friend.username)
                     .font(.system(size: 14, weight: .medium))
