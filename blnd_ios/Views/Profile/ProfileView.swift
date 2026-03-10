@@ -9,6 +9,7 @@ struct ProfileView: View {
     @Environment(AuthState.self) private var authState
     @Environment(TabState.self) private var tabState
     @State private var showSettings = false
+    @State private var showImportContext = false
     @State private var selectedTab: ProfileTab = .watched
     @Namespace private var profileTabNamespace
 
@@ -50,6 +51,9 @@ struct ProfileView: View {
             .navigationDestination(isPresented: $showSettings) {
                 SettingsView()
             }
+            .navigationDestination(isPresented: $showImportContext) {
+                ImportContextView()
+            }
             .task {
                 await authState.fetchCurrentUser()
                 async let watched: () = loadWatched()
@@ -64,6 +68,17 @@ struct ProfileView: View {
 
     private var settingsRow: some View {
         HStack {
+            Button {
+                showImportContext = true
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "square.and.arrow.down")
+                        .font(.system(size: 16))
+                    Text("Import")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .foregroundStyle(AppTheme.textDim)
+            }
             Spacer()
             Button {
                 showSettings = true
