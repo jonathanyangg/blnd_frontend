@@ -22,19 +22,26 @@ struct ProfileView: View {
     @State private var friendsCount = 0
     @State private var groupsCount = 0
 
-    private let posterColumns = [
-        GridItem(.flexible(), spacing: 8),
-        GridItem(.flexible(), spacing: 8),
-        GridItem(.flexible(), spacing: 8),
-    ]
-
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
                     settingsRow
                     userInfo
-                    statsRow
+                    StatsRow(items: [
+                        StatItem(label: "Watched", value: watchedTotal, onTap: nil),
+                        StatItem(label: "Watchlist", value: watchlistTotal, onTap: nil),
+                        StatItem(
+                            label: "Friends",
+                            value: friendsCount,
+                            onTap: { tabState.switchTab(1) }
+                        ),
+                        StatItem(
+                            label: "Blends",
+                            value: groupsCount,
+                            onTap: { tabState.switchTab(2) }
+                        ),
+                    ])
                     tabPicker
                         .padding(.horizontal, 24)
                         .padding(.bottom, 16)
@@ -72,9 +79,11 @@ struct ProfileView: View {
                 showImportContext = true
             } label: {
                 HStack(spacing: 6) {
-                    Image(systemName: "square.and.arrow.down")
-                        .font(.system(size: 16))
-                    Text("Import")
+                    Image("letterboxd-logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                    Text("Import from Letterboxd")
                         .font(.system(size: 14, weight: .medium))
                 }
                 .foregroundStyle(AppTheme.textDim)
@@ -109,44 +118,6 @@ struct ProfileView: View {
                 .foregroundStyle(AppTheme.textMuted)
         }
         .padding(.bottom, 24)
-    }
-
-    // MARK: - Stats
-
-    private var statsRow: some View {
-        HStack {
-            statItem(value: "\(watchedTotal)", label: "Watched")
-            statItem(value: "\(watchlistTotal)", label: "Watchlist")
-            Button { tabState.switchTab(1) } label: {
-                statItem(value: "\(friendsCount)", label: "Friends")
-            }
-            .buttonStyle(.plain)
-            Button { tabState.switchTab(2) } label: {
-                statItem(value: "\(groupsCount)", label: "Blends")
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.vertical, 16)
-        .overlay(alignment: .top) {
-            Divider().background(AppTheme.cardSecondary)
-        }
-        .overlay(alignment: .bottom) {
-            Divider().background(AppTheme.cardSecondary)
-        }
-        .padding(.horizontal, 24)
-        .padding(.bottom, 20)
-    }
-
-    private func statItem(value: String, label: String) -> some View {
-        VStack(spacing: 2) {
-            Text(value)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(.white)
-            Text(label)
-                .font(.system(size: 12))
-                .foregroundStyle(AppTheme.textMuted)
-        }
-        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Tab Picker
@@ -200,20 +171,16 @@ struct ProfileView: View {
             } else if watchedMovies.isEmpty {
                 emptyState(message: "No watched movies yet")
             } else {
-                LazyVGrid(columns: posterColumns, spacing: 8) {
+                PosterGrid {
                     ForEach(watchedMovies) { movie in
                         NavigationLink {
                             MovieDetailView(tmdbId: movie.tmdbId, title: movie.title)
                         } label: {
-                            posterTile(
-                                path: movie.posterPath,
-                                rating: movie.rating
-                            )
+                            PosterTile(posterPath: movie.posterPath, rating: movie.rating)
                         }
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal, 24)
             }
         }
     }
@@ -229,62 +196,18 @@ struct ProfileView: View {
             } else if watchlistMovies.isEmpty {
                 emptyState(message: "Your watchlist is empty")
             } else {
-                LazyVGrid(columns: posterColumns, spacing: 8) {
+                PosterGrid {
                     ForEach(watchlistMovies) { movie in
                         NavigationLink {
                             MovieDetailView(tmdbId: movie.tmdbId, title: movie.title)
                         } label: {
-                            posterTile(path: movie.posterPath, rating: nil)
+                            PosterTile(posterPath: movie.posterPath, rating: nil)
                         }
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal, 24)
             }
         }
-    }
-
-    // MARK: - Poster Tile
-
-    private func posterTile(path: String?, rating: Double?) -> some View {
-        ZStack(alignment: .bottomTrailing) {
-            if let path, let url = URL(string: "https://image.tmdb.org/t/p/w342\(path)") {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case let .success(image):
-                        image
-                            .resizable()
-                            .aspectRatio(2 / 3, contentMode: .fill)
-                    default:
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(AppTheme.posterGradient)
-                            .aspectRatio(2 / 3, contentMode: .fill)
-                    }
-                }
-            } else {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(AppTheme.posterGradient)
-                    .aspectRatio(2 / 3, contentMode: .fill)
-            }
-
-            if let rating {
-                HStack(spacing: 2) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 8))
-                    Text(rating.truncatingRemainder(dividingBy: 1) == 0
-                        ? String(format: "%.0f", rating)
-                        : String(format: "%.1f", rating))
-                        .font(.system(size: 10, weight: .bold))
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, 5)
-                .padding(.vertical, 3)
-                .background(.black.opacity(0.7))
-                .clipShape(Capsule())
-                .padding(4)
-            }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     private func emptyState(message: String) -> some View {
