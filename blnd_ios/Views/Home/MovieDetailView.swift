@@ -92,10 +92,16 @@ struct MovieDetailView: View {
     }
 
     private func heroSection(_ movie: MovieResponse) -> some View {
-        ZStack {
-            if let backdrop = movie.backdropPath {
+        Group {
+            if let trailerUrl = movie.trailerUrl, let videoId = YouTubePlayerView.extractVideoId(from: trailerUrl) {
+                YouTubePlayerView(videoId: videoId)
+                    .frame(height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+            } else if let backdrop = movie.backdropPath {
                 AsyncImage(
-                    url: URL(string: "https://image.tmdb.org/t/p/w780\(backdrop)")
+                    url: URL(
+                        string: "https://image.tmdb.org/t/p/w780\(backdrop)"
+                    )
                 ) { phase in
                     switch phase {
                     case let .success(image):
@@ -104,24 +110,15 @@ struct MovieDetailView: View {
                             .aspectRatio(contentMode: .fill)
                             .frame(height: 200)
                             .clipped()
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                            .clipShape(
+                                RoundedRectangle(cornerRadius: 14)
+                            )
                     default:
                         heroPlaceholder
                     }
                 }
             } else {
                 heroPlaceholder
-            }
-
-            if let trailerUrl = movie.trailerUrl, let url = URL(string: trailerUrl) {
-                Link(destination: url) {
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 22))
-                        .foregroundStyle(.white)
-                        .frame(width: 52, height: 52)
-                        .background(.white.opacity(0.2))
-                        .clipShape(Circle())
-                }
             }
         }
         .padding(.top, 12)
