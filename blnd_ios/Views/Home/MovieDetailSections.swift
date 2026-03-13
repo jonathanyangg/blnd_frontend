@@ -6,9 +6,12 @@ extension MovieDetailView {
     func heroSection(_ movie: MovieResponse) -> some View {
         Group {
             if let trailerUrl = movie.trailerUrl, let videoId = YouTubePlayerView.extractVideoId(from: trailerUrl) {
-                YouTubePlayerView(videoId: videoId)
-                    .frame(height: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                YouTubePlayerView(
+                    videoId: videoId,
+                    backdropPath: movie.backdropPath
+                )
+                .frame(height: 200)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
             } else if let backdrop = movie.backdropPath {
                 AsyncImage(
                     url: URL(

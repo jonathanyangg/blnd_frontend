@@ -1,7 +1,74 @@
 import SwiftUI
 import WebKit
 
-struct YouTubePlayerView: UIViewRepresentable {
+struct YouTubePlayerView: View {
+    let videoId: String
+    let backdropPath: String?
+
+    @State private var isPlaying = false
+
+    var body: some View {
+        ZStack {
+            if isPlaying {
+                YouTubeWebView(videoId: videoId)
+            } else {
+                thumbnail
+                    .onTapGesture { isPlaying = true }
+            }
+        }
+    }
+
+    private var thumbnail: some View {
+        ZStack {
+            if let backdrop = backdropPath {
+                AsyncImage(
+                    url: URL(string: "https://image.tmdb.org/t/p/w780\(backdrop)")
+                ) { phase in
+                    switch phase {
+                    case let .success(image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    default:
+                        Color.black
+                    }
+                }
+            } else {
+                Color.black
+            }
+
+            Circle()
+                .fill(.black.opacity(0.5))
+                .frame(width: 48, height: 48)
+                .overlay(
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.white)
+                        .offset(x: 2)
+                )
+        }
+    }
+
+    /// Extract YouTube video ID from a full URL
+    static func extractVideoId(from url: String) -> String? {
+        if let components = URLComponents(string: url) {
+            // youtube.com/watch?v=ID
+            if let items = components.queryItems, let vid = items.first(where: { $0.name == "v" })?.value {
+                return vid
+            }
+            // youtu.be/ID
+            if components.host == "youtu.be" {
+                let path = components.path.trimmingCharacters(
+                    in: CharacterSet(charactersIn: "/")
+                )
+                return path.isEmpty ? nil : path
+            }
+        }
+        return nil
+    }
+}
+
+private struct YouTubeWebView: UIViewRepresentable {
     let videoId: String
 
     func makeUIView(context: Context) -> WKWebView {
@@ -14,6 +81,7 @@ struct YouTubePlayerView: UIViewRepresentable {
         webView.scrollView.isScrollEnabled = false
         webView.scrollView.bounces = false
 
+        let embedURL = "https://www.youtube-nocookie.com/embed/\(videoId)?playsinline=1&rel=0&autoplay=1"
         let html = """
         <html>
         <head>
@@ -38,7 +106,8 @@ struct YouTubePlayerView: UIViewRepresentable {
         <body>
         <div class="wrap">
         <iframe
-            src="https://www.youtube.com/embed/\(videoId)?playsinline=1&rel=0"
+            src="\(embedURL)"
+            referrerpolicy="strict-origin-when-cross-origin"
             allowfullscreen
             allow="autoplay; encrypted-media">
         </iframe>
@@ -46,26 +115,13 @@ struct YouTubePlayerView: UIViewRepresentable {
         </body>
         </html>
         """
-        webView.loadHTMLString(html, baseURL: nil)
+        webView.loadHTMLString(
+            html,
+            baseURL: URL(string: "https://www.youtube-nocookie.com")
+        )
 
         return webView
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {}
-
-    /// Extract YouTube video ID from a full URL
-    static func extractVideoId(from url: String) -> String? {
-        if let components = URLComponents(string: url) {
-            // youtube.com/watch?v=ID
-            if let items = components.queryItems, let vid = items.first(where: { $0.name == "v" })?.value {
-                return vid
-            }
-            // youtu.be/ID
-            if components.host == "youtu.be" {
-                let path = components.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-                return path.isEmpty ? nil : path
-            }
-        }
-        return nil
-    }
 }
