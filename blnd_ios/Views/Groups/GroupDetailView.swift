@@ -8,16 +8,16 @@ private enum GroupTab: String, CaseIterable {
 struct GroupDetailView: View {
     let groupId: Int
 
-    @State private var group: GroupDetailResponse?
-    @State private var recommendations: [GroupRecMovieResponse] = []
-    @State private var watchlist: [WatchlistMovieResponse] = []
-    @State private var isLoading = true
+    @State var group: GroupDetailResponse?
+    @State var recommendations: [GroupRecMovieResponse] = []
+    @State var watchlist: [WatchlistMovieResponse] = []
+    @State var isLoading = true
     @State private var showMembers = false
-    @State private var isEditingName = false
-    @State private var editName = ""
+    @State var isEditingName = false
+    @State var editName = ""
     @FocusState private var nameFieldFocused: Bool
     @State private var selectedTab: GroupTab = .blendPicks
-    @State private var toastMessage: String?
+    @State var toastMessage: String?
     @Namespace private var tabNamespace
     @Environment(\.dismiss) private var dismiss
 

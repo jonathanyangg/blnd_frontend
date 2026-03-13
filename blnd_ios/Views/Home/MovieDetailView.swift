@@ -118,8 +118,10 @@ struct MovieDetailView: View {
                 posterPath: movie?.posterPath,
                 existingRating: isWatched ? userRating : nil,
                 onSaved: { savedRating in
+                    let wasNew = !isWatched
                     isWatched = true
                     userRating = savedRating
+                    if wasNew { onHide?() }
                 }
             )
             .presentationDetents([.medium])
